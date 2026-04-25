@@ -11,7 +11,7 @@
     "format:write": "prettier --write .",
     "test:unit": "vitest run",
     "test:integration": "vitest run --config vitest.integration.config.ts",
-    "test:e2e": "playwright test",
+    "test:e2e": "NO_PROXY=localhost,127.0.0.1 no_proxy=localhost,127.0.0.1 http_proxy= https_proxy= HTTP_PROXY= HTTPS_PROXY= playwright test",
     "test": "pnpm test:unit && pnpm test:integration && pnpm test:e2e",
     "db:migrate": "prisma migrate dev",
     "db:reset": "prisma migrate reset --force",

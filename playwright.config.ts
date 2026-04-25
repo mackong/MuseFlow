@@ -41,5 +41,24 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     stdout: "ignore",
     stderr: "pipe",
+    env: {
+      // Run Next.js against the test DB so e2e specs can truncate + seed
+      // without clobbering dev data.
+      DATABASE_URL:
+        process.env.DATABASE_URL_TEST ?? "postgresql://lihaiping@localhost:5432/museflow_test",
+      DIRECT_DATABASE_URL:
+        process.env.DATABASE_URL_TEST ?? "postgresql://lihaiping@localhost:5432/museflow_test",
+      // Force fakes so e2e doesn't hit a real LLM / moderation / Redis.
+      MUSEFLOW_AI_PROVIDER: "fake",
+      MUSEFLOW_MODERATOR: "fake",
+      UPSTASH_REDIS_REST_URL: "",
+      UPSTASH_REDIS_REST_TOKEN: "",
+      // Auth.js needs a secret; deterministic for e2e.
+      AUTH_SECRET:
+        process.env.AUTH_SECRET ??
+        "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      AUTH_URL: "http://localhost:3000",
+      NEXTAUTH_URL: "http://localhost:3000",
+    },
   },
 });

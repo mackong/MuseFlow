@@ -108,7 +108,7 @@ the content out of the public surface but visible in own profile drafts list.
 - [ ] T036 [P] [US1] Integration test for `POST /api/ai/generate`: 200 ALLOW, 200 REJECT, 401, 400, 429, 502 in `tests/integration/ai.api.test.ts` — DEFERRED to T039 (Playwright e2e). Vitest can't resolve `next/server` transitively imported by `next-auth` under pnpm's strict node_modules layout. Service-layer behavior is fully covered by the 5 unit tests in `tests/unit/ai.service.test.ts`; the route handler is glue code (validate → service → respond) that will be exercised by the Playwright create+publish e2e at T039 against a real dev server
 - [ ] T037 [P] [US1] Integration test for drafts CRUD endpoints: 401 anon, 200 own, 404 cross-author in `tests/integration/drafts.api.test.ts` — DEFERRED to T039 (same vitest + next-auth resolver block as T036). Service-layer behavior covered by 10 unit tests in `tests/unit/draft.service.test.ts`; live curl smoke proved the route handler glue works end-to-end
 - [ ] T038 [P] [US1] Integration test for `POST /api/drafts/[id]/publish`: 201 creates Post, 422 safety_rejected preserves draft, 400 missing fields, 404 cross-author in `tests/integration/publish.api.test.ts` — DEFERRED to T039 (same resolver block). Service-layer behavior covered by 11 unit tests in `tests/unit/post.service.test.ts`; live curl smoke proved 201 ALLOW + 422 REJECT paths against the real DB
-- [ ] T039 [P] [US1] E2E test for create+publish flow on mobile viewport in `tests/e2e/create-and-publish.spec.ts`: sign in → create → generate (fake provider) → edit → publish → assert post visible at detail URL
+- [x] T039 [P] [US1] E2E test for create+publish flow on mobile viewport in `tests/e2e/create-and-publish.spec.ts`: sign in → create → generate (fake provider) → edit → publish → assert post visible at detail URL
 
 ### Implementation for User Story 1
 
@@ -126,12 +126,12 @@ the content out of the public surface but visible in own profile drafts list.
 - [x] T051 [US1] Drafts list/create routes at `src/app/api/drafts/route.ts` (GET, POST)
 - [x] T052 [US1] Drafts item routes at `src/app/api/drafts/[id]/route.ts` (GET, PATCH, DELETE)
 - [x] T053 [US1] Publish route at `src/app/api/drafts/[id]/publish/route.ts` (POST)
-- [ ] T054 [P] [US1] `ToneSelector` component at `src/components/editor/ToneSelector.tsx`: 5 options, mobile-friendly chip layout, accessible labels
-- [ ] T055 [P] [US1] `PostEditor` component at `src/components/editor/PostEditor.tsx`: title input + body textarea with character counts, autosize on mobile, debounced PATCH to draft endpoint
-- [ ] T056 [P] [US1] `RejectionNotice` component at `src/components/safety/RejectionNotice.tsx`: shows category + reason, offers Regenerate / Edit / Discard actions
-- [ ] T057 [US1] Create page at `src/app/(app)/create/page.tsx`: idea textarea → ToneSelector → "Generate" CTA → calls `/api/ai/generate` → on ALLOW renders PostEditor seeded with output → "Save draft" / "Publish" actions; on REJECT renders RejectionNotice; on RATE_LIMITED shows wait-time toast
-- [ ] T058 [US1] Drafts list view at `src/app/(app)/me/drafts/page.tsx`: lists own drafts via `GET /api/drafts`, links to editor
-- [ ] T059 [US1] Draft editor view at `src/app/(app)/draft/[id]/page.tsx`: loads draft via `GET /api/drafts/[id]`, reuses PostEditor, exposes Regenerate / Save / Publish / Discard
+- [x] T054 [P] [US1] `ToneSelector` component at `src/components/editor/ToneSelector.tsx`: 5 options, mobile-friendly chip layout, accessible labels
+- [x] T055 [P] [US1] `PostEditor` component at `src/components/editor/PostEditor.tsx`: title input + body textarea with character counts, autosize on mobile, debounced PATCH to draft endpoint
+- [x] T056 [P] [US1] `RejectionNotice` component at `src/components/safety/RejectionNotice.tsx`: shows category + reason, offers Regenerate / Edit / Discard actions
+- [x] T057 [US1] Create page at `src/app/(app)/create/page.tsx`: idea textarea → ToneSelector → "Generate" CTA → calls `/api/ai/generate` → on ALLOW renders PostEditor seeded with output → "Save draft" / "Publish" actions; on REJECT renders RejectionNotice; on RATE_LIMITED shows wait-time toast
+- [x] T058 [US1] Drafts list view at `src/app/(app)/me/drafts/page.tsx`: lists own drafts via `GET /api/drafts`, links to editor
+- [x] T059 [US1] Draft editor view at `src/app/(app)/draft/[id]/page.tsx`: loads draft via `GET /api/drafts/[id]`, reuses PostEditor, exposes Regenerate / Save / Publish / Discard
 
 **Checkpoint**: User Story 1 fully functional. A user can create, edit,
 publish, and save drafts. Safety rejections behave per spec. AI generations
@@ -159,7 +159,7 @@ opens full post.
 - [ ] T063 [P] [US2] Feed Zod contracts at `src/lib/contracts/feed.contract.ts`: `FeedCardProjectionSchema`, `FeedQuerySchema` per `contracts/feed.contract.md`
 - [ ] T064 [US2] Feed service at `src/server/services/feed.service.ts`: `listPublic(viewerId|null, cursor, limit)` runs the indexed cursor query, joins author, computes per-viewer `liked`/`saved` (only when viewerId), truncates body preview per rules
 - [ ] T065 [US2] Route `GET /api/feed` at `src/app/api/feed/route.ts`
-- [ ] T066 [US2] Route `GET /api/posts/[id]` at `src/app/api/posts/[id]/route.ts`
+- [x] T066 [US2] Route `GET /api/posts/[id]` at `src/app/api/posts/[id]/route.ts` — landed early as part of the US1 slice (T039 e2e needed the post-detail target). Calls `post.service.getById(id, viewer?.id ?? null)`. Public read; viewer state populated when authenticated.
 - [ ] T067 [P] [US2] `FeedCard` component at `src/components/feed/FeedCard.tsx`: mobile-first card with title, preview, author, relative time, count badges, optional `AttributionBadge` for remix
 - [ ] T068 [P] [US2] `AttributionBadge` component at `src/components/post/AttributionBadge.tsx`: "Remix of <title> by <author>" with link when parent present, plain text when removed
 - [ ] T069 [P] [US2] `FeedList` component at `src/components/feed/FeedList.tsx`: SWR-backed list with 30s revalidate + revalidate-on-focus (decision 7); cursor-based "Load more"; skeleton loaders

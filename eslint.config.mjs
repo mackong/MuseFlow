@@ -66,6 +66,9 @@ export default [
       // Base no-unused-vars doesn't understand TS interface params or type-only
       // imports; defer entirely to @typescript-eslint/no-unused-vars.
       "no-unused-vars": "off",
+      // Base no-undef doesn't know about TS DOM lib types (RequestInit,
+      // BodyInit, etc.); TypeScript itself enforces undefined-name errors.
+      "no-undef": "off",
       "@typescript-eslint/no-unused-vars": [
         "error",
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
@@ -129,6 +132,18 @@ export default [
     files: ["tests/**/*.{ts,tsx}", "**/*.test.{ts,tsx}"],
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
+    },
+  },
+
+  // Playwright e2e: the fixture API uses `({}, use)` (empty destructure) and
+  // `await use(value)` (resource handoff). The react-hooks plugin mistakes
+  // `use(...)` for a hook call, and `no-empty-pattern` flags the empty
+  // destructure even when it is the documented fixture signature.
+  {
+    files: ["tests/e2e/**/*.{ts,tsx}"],
+    rules: {
+      "no-empty-pattern": "off",
+      "react-hooks/rules-of-hooks": "off",
     },
   },
 ];
