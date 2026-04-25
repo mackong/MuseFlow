@@ -78,10 +78,10 @@ story depends on this phase.
 - [x] T025 [P] Vitest unit config at `vitest.config.ts` (Node env, alias `@/*`, env defaults `MUSEFLOW_AI_PROVIDER=fake MUSEFLOW_MODERATOR=fake`)
 - [x] T026 [P] Vitest integration config at `vitest.integration.config.ts` (separate include glob `tests/integration/**`, `setupFiles` that boots a Neon test branch or `prismock`)
 - [x] T027 [P] Playwright config at `playwright.config.ts`: mobile viewport (Pixel 5 emulation), Slow 4G throttle, `webServer` runs `pnpm dev`
-- [ ] T028 [P] App shell at `src/app/layout.tsx` (root html, viewport meta `width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no`, `theme-color`, fonts, Toaster)
-- [ ] T029 [P] BottomNav component at `src/components/nav/BottomNav.tsx`: 4 tabs (Feed, Create, Saved, Profile), active state, touch targets ≥ 44px
-- [ ] T030 Authenticated app shell at `src/app/(app)/layout.tsx`: redirects to sign-in if no session; renders BottomNav fixed-bottom, content area scrollable
-- [ ] T031 [P] Sign-in page at `src/app/(auth)/sign-in/page.tsx` (mobile-first form: email magic-link primary, GitHub secondary; uses Auth.js client)
+- [x] T028 [P] App shell at `src/app/layout.tsx` (root html, viewport meta `width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no`, `theme-color`, fonts, Toaster)
+- [x] T029 [P] BottomNav component at `src/components/nav/BottomNav.tsx`: 4 tabs (Feed, Create, Saved, Profile), active state, touch targets ≥ 44px
+- [x] T030 Authenticated app shell at `src/app/(app)/layout.tsx`: redirects to sign-in if no session; renders BottomNav fixed-bottom, content area scrollable
+- [x] T031 [P] Sign-in page at `src/app/(auth)/sign-in/page.tsx` (mobile-first form: email magic-link primary, GitHub secondary; uses Auth.js client)
 
 **Checkpoint**: Foundation ready — user story implementation can begin.
 
