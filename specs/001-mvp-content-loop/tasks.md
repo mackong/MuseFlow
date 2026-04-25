@@ -42,16 +42,16 @@ Single Next.js project (App Router) at the repository root:
 
 **Purpose**: Project initialization and base toolchain.
 
-- [ ] T001 Initialize Next.js 15 App Router project at repo root with `pnpm create next-app` (TypeScript, Tailwind, App Router, src dir, no Turbopack at start) — produces `package.json`, `tsconfig.json`, `next.config.mjs`, `src/app/`
-- [ ] T002 [P] Configure `tsconfig.json` with `"strict": true`, `"noUncheckedIndexedAccess": true`, path alias `"@/*": ["./src/*"]`
-- [ ] T003 [P] Add `.gitignore` covering `node_modules/`, `.next/`, `coverage/`, `.env*` (except `.env.example`), `.claude/settings.local.json`, `prisma/*.db`, `playwright-report/`, `test-results/`
-- [ ] T004 [P] Configure ESLint flat config (`eslint.config.js`) with `@typescript-eslint`, `eslint-plugin-react`, `eslint-plugin-tailwindcss`; add a custom rule (or comment lint guidance) forbidding direct imports of `openai` outside `src/server/services/ai/`
-- [ ] T005 [P] Configure Prettier (`.prettierrc.json`) with `prettier-plugin-tailwindcss`
-- [ ] T006 Install runtime deps: `pnpm add prisma @prisma/client zod openai next-auth@beta @auth/prisma-adapter @upstash/ratelimit @upstash/redis sonner`
-- [ ] T007 [P] Install dev deps: `pnpm add -D vitest @vitest/ui @vitejs/plugin-react happy-dom playwright @playwright/test prismock @types/node tsx`
-- [ ] T008 Initialize shadcn/ui in `components.json` with `pnpm dlx shadcn@latest init` (style: default, base color: slate, CSS variables: yes, RSC: yes, src dir: yes), then add base primitives: `button card input label sheet skeleton sonner tabs textarea toast`
-- [ ] T009 [P] Add npm scripts to `package.json`: `dev`, `build`, `start`, `lint`, `format`, `test:unit` (vitest run), `test:integration` (vitest run --config vitest.integration.config.ts), `test:e2e` (playwright test), `test`, `db:migrate` (prisma migrate dev), `db:reset` (prisma migrate reset --force), `db:seed` (tsx prisma/seed.ts), `db:studio`
-- [ ] T010 [P] Create `.env.example` with all variables from `quickstart.md` § 2 (DATABASE_URL, DIRECT_DATABASE_URL, AUTH_SECRET, AUTH_URL, EMAIL_*, GITHUB_*, OPENAI_*, UPSTASH_*, MUSEFLOW_AI_PROVIDER, MUSEFLOW_MODERATOR) — with safe placeholder values
+- [X] T001 Initialize Next.js 15 App Router project at repo root with `pnpm create next-app` (TypeScript, Tailwind, App Router, src dir, no Turbopack at start) — produces `package.json`, `tsconfig.json`, `next.config.mjs`, `src/app/`
+- [X] T002 [P] Configure `tsconfig.json` with `"strict": true`, `"noUncheckedIndexedAccess": true`, path alias `"@/*": ["./src/*"]`
+- [X] T003 [P] Add `.gitignore` covering `node_modules/`, `.next/`, `coverage/`, `.env*` (except `.env.example`), `.claude/settings.local.json`, `prisma/*.db`, `playwright-report/`, `test-results/`
+- [X] T004 [P] Configure ESLint flat config (`eslint.config.js`) with `@typescript-eslint`, `eslint-plugin-react`, `eslint-plugin-tailwindcss`; add a custom rule (or comment lint guidance) forbidding direct imports of `openai` outside `src/server/services/ai/`
+- [X] T005 [P] Configure Prettier (`.prettierrc.json`) with `prettier-plugin-tailwindcss`
+- [X] T006 Install runtime deps: `pnpm add prisma @prisma/client zod openai next-auth@beta @auth/prisma-adapter @upstash/ratelimit @upstash/redis sonner`
+- [X] T007 [P] Install dev deps: `pnpm add -D vitest @vitest/ui @vitejs/plugin-react happy-dom playwright @playwright/test prismock @types/node tsx`
+- [X] T008 Initialize shadcn/ui in `components.json` with `pnpm dlx shadcn@latest init` (style: default, base color: slate, CSS variables: yes, RSC: yes, src dir: yes), then add base primitives: `button card input label sheet skeleton sonner tabs textarea toast`
+- [X] T009 [P] Add npm scripts to `package.json`: `dev`, `build`, `start`, `lint`, `format`, `test:unit` (vitest run), `test:integration` (vitest run --config vitest.integration.config.ts), `test:e2e` (playwright test), `test`, `db:migrate` (prisma migrate dev), `db:reset` (prisma migrate reset --force), `db:seed` (tsx prisma/seed.ts), `db:studio`
+- [X] T010 [P] Create `.env.example` with all variables from `quickstart.md` § 2 (DATABASE_URL, DIRECT_DATABASE_URL, AUTH_SECRET, AUTH_URL, EMAIL_*, GITHUB_*, OPENAI_*, UPSTASH_*, MUSEFLOW_AI_PROVIDER, MUSEFLOW_MODERATOR) — with safe placeholder values
 
 ---
 
