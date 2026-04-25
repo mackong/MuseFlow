@@ -71,10 +71,10 @@ story depends on this phase.
 - [x] T018 [P] Implement fake AI provider at `tests/helpers/fakeAIProvider.ts`: deterministic `{ title, body }` output keyed by mode + idea; configurable safety-rejection trigger (e.g. body contains "TRIGGER_REJECT")
 - [x] T019 [P] Implement fake moderator at `tests/helpers/fakeModerator.ts`: ALLOW by default; REJECT when input text contains "TRIGGER_REJECT" with category `["hate"]` and reason `"contains banned phrase"`
 - [x] T020 [P] Test DB helper at `tests/helpers/db.ts`: per-test transaction or `prismock` setup; truncation reset; user/post factories
-- [ ] T021 Create Auth.js v5 config at `src/server/auth/auth.config.ts` using `@auth/prisma-adapter`; providers: `EmailProvider` (magic link, dev transport that logs to console when `EMAIL_SERVER` unset) and `GitHub` (only when env vars present); session strategy `database`; export `auth`, `signIn`, `signOut`, `handlers`
-- [ ] T022 [P] Create `getCurrentUser()` helper at `src/server/auth/session.ts` returning `{ id, username, displayName, image } | null`
-- [ ] T023 Mount Auth.js handlers at `src/app/api/auth/[...nextauth]/route.ts` exporting `GET` and `POST` from `handlers`
-- [ ] T024 [P] Implement rate-limit service at `src/server/services/ratelimit.service.ts` using `@upstash/ratelimit`; export `checkAIGenerationLimit(userId, surface)` returning `{ allowed, retryAfterSeconds, remaining, resetAt }`; throws `RateLimitedError` when exhausted; defaults: 20/hr CREATE, 10/hr REMIX (from `plan.md` cost envelopes)
+- [X] T021 Create Auth.js v5 config at `src/server/auth/auth.config.ts` using `@auth/prisma-adapter`; providers: `EmailProvider` (magic link, dev transport that logs to console when `EMAIL_SERVER` unset) and `GitHub` (only when env vars present); session strategy `database`; export `auth`, `signIn`, `signOut`, `handlers`
+- [X] T022 [P] Create `getCurrentUser()` helper at `src/server/auth/session.ts` returning `{ id, username, displayName, image } | null`
+- [X] T023 Mount Auth.js handlers at `src/app/api/auth/[...nextauth]/route.ts` exporting `GET` and `POST` from `handlers`
+- [X] T024 [P] Implement rate-limit service at `src/server/services/ratelimit.service.ts` using `@upstash/ratelimit`; export `checkAIGenerationLimit(userId, surface)` returning `{ allowed, retryAfterSeconds, remaining, resetAt }`; throws `RateLimitedError` when exhausted; defaults: 20/hr CREATE, 10/hr REMIX (from `plan.md` cost envelopes)
 - [ ] T025 [P] Vitest unit config at `vitest.config.ts` (Node env, alias `@/*`, env defaults `MUSEFLOW_AI_PROVIDER=fake MUSEFLOW_MODERATOR=fake`)
 - [ ] T026 [P] Vitest integration config at `vitest.integration.config.ts` (separate include glob `tests/integration/**`, `setupFiles` that boots a Neon test branch or `prismock`)
 - [ ] T027 [P] Playwright config at `playwright.config.ts`: mobile viewport (Pixel 5 emulation), Slow 4G throttle, `webServer` runs `pnpm dev`
