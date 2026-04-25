@@ -20,6 +20,7 @@ goes through a provider abstraction; all public transitions run safety
 moderation; AI calls are rate-limited per user and logged for cost tracking.
 
 The architectural commitments are:
+
 - **Frontend**: Next.js (App Router) + TypeScript + Tailwind + shadcn/ui,
   mobile-first, installable PWA.
 - **Backend**: Next.js Route Handlers as thin transport layer; **business logic
@@ -51,6 +52,7 @@ PWA on iOS Safari and Android Chrome. Server runs on Vercel.
 backend repo). Service modules are repo-internal but architected so a future
 Expo / React Native client can call the same HTTP API surface (Principle IX).
 **Performance Goals**:
+
 - Feed first contentful paint < 1.8s on a mid-tier Android device over a
   simulated Slow 4G network
 - Largest contentful paint < 2.5s on the same profile
@@ -58,7 +60,7 @@ Expo / React Native client can call the same HTTP API surface (Principle IX).
 - Lighthouse PWA category ≥ 90 on mobile profile at release
 - AI generation P95 end-to-end ≤ 8s (server time excluding model latency
   variance is the goal; total wall clock depends on provider)
-**Constraints**:
+  **Constraints**:
 - Initial JS bundle for the app shell ≤ 200 KB gzipped (excluding fonts and
   the editor surface, which may be route-split)
 - No business logic inside `src/app/**/page.tsx` or `src/app/**/route.ts`
@@ -66,7 +68,7 @@ Expo / React Native client can call the same HTTP API surface (Principle IX).
 - All LLM access flows through `src/server/services/ai/provider.interface.ts`
 - All publish transitions invoke the moderation service before persisting the
   public state change
-**Scale/Scope**:
+  **Scale/Scope**:
 - MVP target: ≤ 10k registered users, ≤ 100k posts in feed table, peak ~50
   concurrent requests; well within a single Postgres + Vercel serverless
   configuration
@@ -75,24 +77,24 @@ Expo / React Native client can call the same HTTP API surface (Principle IX).
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 Evaluation against Constitution v2.0.0 (`.specify/memory/constitution.md`):
 
-| # | Principle | Plan Posture | Gate Result |
-|---|-----------|--------------|-------------|
-| I | Mobile-First Experience | Tailwind + shadcn/ui designed mobile-first; bottom tab nav (`(app)/_components/BottomNav`); single-column feed; touch targets ≥ 44px; performance budgets in Technical Context | **PASS** |
-| II | App-Like PWA Behavior | `next-pwa` (or manual SW) with offline shell; web manifest + iOS/Android icons; client-side navigation between feed/create/profile; bottom-sheet UI for actions (shadcn `Sheet`); skeleton loaders | **PASS** |
-| III | Human-Centered AI Creation | Generate flow returns to editable draft; explicit "Publish" / "Save draft" / "Regenerate" buttons; no auto-publish path exists in the API contract | **PASS** |
-| IV | Content Interaction Loop | All 5 user stories cover idea → generation → editing → publishing → browsing → interaction → remix → new content | **PASS** |
-| V | Remix and Attribution | `Post.parentId` + `Post.parentAuthorSnapshot` set at remix-draft creation, persisted through publish; UI shows "Remix of …"; orphan handling preserves text reference | **PASS** |
-| VI | Safety by Design (NN) | Moderation service called from `ai.service.ts` after generation AND from `post.service.ts.publish()` and `comment.service.ts.create()`; rejection returns a `SafetyRejection` with category + reason | **PASS** |
-| VII | Privacy and Data Control | Drafts table / draft status filtered by `authorId` only; public feed and public profile queries hard-filter `status = 'PUBLISHED'`; no training opt-in field touched in MVP (default off) | **PASS** |
-| VIII | Model-Provider Flexibility | `AIProvider` interface in `src/server/services/ai/provider.interface.ts`; MVP impl `openai-provider.ts`; provider chosen via env config; feature code imports the interface, never the SDK | **PASS** |
-| IX | API-First Backend Design | All business logic in `src/server/services/`; route handlers in `src/app/api/**` are ≤ 30 lines (validate → call service → respond); shared contracts in `src/lib/contracts/` are reusable by a future RN/Expo client | **PASS** |
-| X | Cost-Aware AI | Every `aiProvider.generate()` call wraps a `Generation` record (provider, model, latency, status, token counts when available, feature surface); rate-limit middleware in service layer; per-feature budgets declared below | **PASS** |
-| XI | Testable Behavior (NN) | Vitest unit tests for every service module; integration tests for every route in `tests/integration/`; Playwright e2e covering create+publish, interact, remix end-to-end | **PASS** |
-| XII | Fast MVP Iteration | No images/video/audio/agents/native build in scope; single Postgres; no microservices; no caching layer beyond Next.js defaults; no recommendation engine | **PASS** |
+| #    | Principle                  | Plan Posture                                                                                                                                                                                                                | Gate Result |
+| ---- | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| I    | Mobile-First Experience    | Tailwind + shadcn/ui designed mobile-first; bottom tab nav (`(app)/_components/BottomNav`); single-column feed; touch targets ≥ 44px; performance budgets in Technical Context                                              | **PASS**    |
+| II   | App-Like PWA Behavior      | `next-pwa` (or manual SW) with offline shell; web manifest + iOS/Android icons; client-side navigation between feed/create/profile; bottom-sheet UI for actions (shadcn `Sheet`); skeleton loaders                          | **PASS**    |
+| III  | Human-Centered AI Creation | Generate flow returns to editable draft; explicit "Publish" / "Save draft" / "Regenerate" buttons; no auto-publish path exists in the API contract                                                                          | **PASS**    |
+| IV   | Content Interaction Loop   | All 5 user stories cover idea → generation → editing → publishing → browsing → interaction → remix → new content                                                                                                            | **PASS**    |
+| V    | Remix and Attribution      | `Post.parentId` + `Post.parentAuthorSnapshot` set at remix-draft creation, persisted through publish; UI shows "Remix of …"; orphan handling preserves text reference                                                       | **PASS**    |
+| VI   | Safety by Design (NN)      | Moderation service called from `ai.service.ts` after generation AND from `post.service.ts.publish()` and `comment.service.ts.create()`; rejection returns a `SafetyRejection` with category + reason                        | **PASS**    |
+| VII  | Privacy and Data Control   | Drafts table / draft status filtered by `authorId` only; public feed and public profile queries hard-filter `status = 'PUBLISHED'`; no training opt-in field touched in MVP (default off)                                   | **PASS**    |
+| VIII | Model-Provider Flexibility | `AIProvider` interface in `src/server/services/ai/provider.interface.ts`; MVP impl `openai-provider.ts`; provider chosen via env config; feature code imports the interface, never the SDK                                  | **PASS**    |
+| IX   | API-First Backend Design   | All business logic in `src/server/services/`; route handlers in `src/app/api/**` are ≤ 30 lines (validate → call service → respond); shared contracts in `src/lib/contracts/` are reusable by a future RN/Expo client       | **PASS**    |
+| X    | Cost-Aware AI              | Every `aiProvider.generate()` call wraps a `Generation` record (provider, model, latency, status, token counts when available, feature surface); rate-limit middleware in service layer; per-feature budgets declared below | **PASS**    |
+| XI   | Testable Behavior (NN)     | Vitest unit tests for every service module; integration tests for every route in `tests/integration/`; Playwright e2e covering create+publish, interact, remix end-to-end                                                   | **PASS**    |
+| XII  | Fast MVP Iteration         | No images/video/audio/agents/native build in scope; single Postgres; no microservices; no caching layer beyond Next.js defaults; no recommendation engine                                                                   | **PASS**    |
 
 **Gate result (pre-research)**: PASS. No Complexity Tracking entries required.
 
@@ -115,6 +117,7 @@ service layout, and quickstart introduce no new principle violations:
   time, and the PWA section enforces Principle II.
 
 **Per-feature cost envelopes (Principle X)**:
+
 - Create generation: 1 LLM call/idea, target avg input ≤ 200 tokens, output ≤ 600 tokens
 - Regenerate: same envelope, counted separately for budgeting
 - Remix: 1 LLM call, target avg input ≤ 1200 tokens (original + instruction), output ≤ 800 tokens
@@ -289,5 +292,5 @@ of a separate backend repo at MVP scale.
 No violations. Table intentionally empty.
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
+| --------- | ---------- | ------------------------------------ |
 | _(none)_  | _(n/a)_    | _(n/a)_                              |

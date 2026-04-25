@@ -5,7 +5,7 @@
 
 This document is the smallest set of steps to get the feature running locally,
 with a real database, a fake AI provider, and a fake moderator. Before
-implementation begins this is a *forward-looking* runbook; once the feature
+implementation begins this is a _forward-looking_ runbook; once the feature
 ships, it doubles as the README section pointed to from
 `/api/healthz`-style operational docs.
 
@@ -40,24 +40,24 @@ Copy the example env file and fill in:
 cp .env.example .env.local
 ```
 
-| Variable                      | Required for | Notes |
-|-------------------------------|--------------|-------|
-| `DATABASE_URL`                | always       | Pooled Postgres URL (Neon's `?pgbouncer=true&connection_limit=1` flavor) |
-| `DIRECT_DATABASE_URL`         | migrations   | Direct (non-pooled) URL for `prisma migrate` |
-| `AUTH_SECRET`                 | always       | Generate with `openssl rand -base64 32` |
-| `AUTH_URL`                    | always       | `http://localhost:3000` for local dev |
-| `EMAIL_SERVER`                | optional     | SMTP URL for magic-link sign-in. Omit to use the dev email transport that prints links to the console |
-| `EMAIL_FROM`                  | optional     | `MuseFlow <noreply@museflow.local>` |
-| `GITHUB_CLIENT_ID`            | optional     | OAuth GitHub app for one-click sign-in |
-| `GITHUB_CLIENT_SECRET`        | optional     | |
-| `OPENAI_API_KEY`              | real AI      | Or any OpenAI-compatible key |
-| `OPENAI_BASE_URL`             | optional     | Override for OpenAI-compatible providers (default: official OpenAI) |
-| `OPENAI_MODEL`                | always       | e.g., `gpt-4o-mini` |
-| `OPENAI_MODERATION_MODEL`     | always       | e.g., `omni-moderation-latest` |
-| `UPSTASH_REDIS_REST_URL`      | rate limit   | From Upstash console |
-| `UPSTASH_REDIS_REST_TOKEN`    | rate limit   | |
-| `MUSEFLOW_AI_PROVIDER`        | optional     | `openai` (default) or `fake` (no key required) |
-| `MUSEFLOW_MODERATOR`          | optional     | `openai` (default) or `fake` |
+| Variable                   | Required for | Notes                                                                                                 |
+| -------------------------- | ------------ | ----------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`             | always       | Pooled Postgres URL (Neon's `?pgbouncer=true&connection_limit=1` flavor)                              |
+| `DIRECT_DATABASE_URL`      | migrations   | Direct (non-pooled) URL for `prisma migrate`                                                          |
+| `AUTH_SECRET`              | always       | Generate with `openssl rand -base64 32`                                                               |
+| `AUTH_URL`                 | always       | `http://localhost:3000` for local dev                                                                 |
+| `EMAIL_SERVER`             | optional     | SMTP URL for magic-link sign-in. Omit to use the dev email transport that prints links to the console |
+| `EMAIL_FROM`               | optional     | `MuseFlow <noreply@museflow.local>`                                                                   |
+| `GITHUB_CLIENT_ID`         | optional     | OAuth GitHub app for one-click sign-in                                                                |
+| `GITHUB_CLIENT_SECRET`     | optional     |                                                                                                       |
+| `OPENAI_API_KEY`           | real AI      | Or any OpenAI-compatible key                                                                          |
+| `OPENAI_BASE_URL`          | optional     | Override for OpenAI-compatible providers (default: official OpenAI)                                   |
+| `OPENAI_MODEL`             | always       | e.g., `gpt-4o-mini`                                                                                   |
+| `OPENAI_MODERATION_MODEL`  | always       | e.g., `omni-moderation-latest`                                                                        |
+| `UPSTASH_REDIS_REST_URL`   | rate limit   | From Upstash console                                                                                  |
+| `UPSTASH_REDIS_REST_TOKEN` | rate limit   |                                                                                                       |
+| `MUSEFLOW_AI_PROVIDER`     | optional     | `openai` (default) or `fake` (no key required)                                                        |
+| `MUSEFLOW_MODERATOR`       | optional     | `openai` (default) or `fake`                                                                          |
 
 For first-run smoke testing without external services, set:
 
@@ -150,10 +150,10 @@ When opening a PR for any UI change in this feature, confirm:
 
 ## 9. Where to look when something is wrong
 
-| Symptom                                  | First place to look |
-|------------------------------------------|---------------------|
-| AI calls failing                         | `src/server/services/ai/openai-provider.ts` and `Generation` table |
+| Symptom                                  | First place to look                                                             |
+| ---------------------------------------- | ------------------------------------------------------------------------------- |
+| AI calls failing                         | `src/server/services/ai/openai-provider.ts` and `Generation` table              |
 | "safety_rejected" with no obvious reason | `SafetyCheck` table for the latest row, surface = `AI_OUTPUT` or `POST_PUBLISH` |
-| Like count drift                         | Reconcile by `SELECT COUNT(*) FROM Like WHERE postId = ?` vs `Post.likeCount` |
-| Remix attribution missing                | `parentAuthorSnapshot` JSONB column on the remix `Post` row |
-| Public surface leaking a draft           | Search every read path for the missing `status = 'PUBLISHED'` filter |
+| Like count drift                         | Reconcile by `SELECT COUNT(*) FROM Like WHERE postId = ?` vs `Post.likeCount`   |
+| Remix attribution missing                | `parentAuthorSnapshot` JSONB column on the remix `Post` row                     |
+| Public surface leaking a draft           | Search every read path for the missing `status = 'PUBLISHED'` filter            |

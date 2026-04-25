@@ -31,22 +31,23 @@ relationships, indexes, and the state transitions relevant to the spec.
 The authenticated principal. Owns posts, drafts, comments, likes, saves,
 remixes, and AI generation records.
 
-| Field            | Type          | Constraints                       | Notes |
-|------------------|---------------|-----------------------------------|-------|
-| `id`             | String (cuid) | PK                                | |
-| `email`          | String        | Unique, not null                  | Source of identity for Auth.js |
-| `displayName`    | String        | Unique, length 2..40              | Public name; renames allowed (decision 13 in research.md) |
-| `username`       | String        | Unique, length 2..30, slug-safe   | Used in profile URL `/profile/{username}` |
-| `description`    | String?       | Length 0..240                     | Optional public bio shown on public profile |
-| `image`          | String?       |                                   | Avatar URL (provided by OAuth or null) |
-| `emailVerified`  | DateTime?     |                                   | Set by Auth.js on email magic-link verify |
-| `createdAt`      | DateTime      | @default(now())                   | |
-| `updatedAt`      | DateTime      | @updatedAt                        | |
+| Field           | Type          | Constraints                     | Notes                                                     |
+| --------------- | ------------- | ------------------------------- | --------------------------------------------------------- |
+| `id`            | String (cuid) | PK                              |                                                           |
+| `email`         | String        | Unique, not null                | Source of identity for Auth.js                            |
+| `displayName`   | String        | Unique, length 2..40            | Public name; renames allowed (decision 13 in research.md) |
+| `username`      | String        | Unique, length 2..30, slug-safe | Used in profile URL `/profile/{username}`                 |
+| `description`   | String?       | Length 0..240                   | Optional public bio shown on public profile               |
+| `image`         | String?       |                                 | Avatar URL (provided by OAuth or null)                    |
+| `emailVerified` | DateTime?     |                                 | Set by Auth.js on email magic-link verify                 |
+| `createdAt`     | DateTime      | @default(now())                 |                                                           |
+| `updatedAt`     | DateTime      | @updatedAt                      |                                                           |
 
 **Auth.js companion tables** (`Account`, `Session`, `VerificationToken`)
 follow the standard Auth.js Prisma adapter schema and are not redefined here.
 
 **Relations**:
+
 - `posts: Post[]` (authored)
 - `drafts: Draft[]`
 - `comments: Comment[]`
@@ -61,28 +62,28 @@ follow the standard Auth.js Prisma adapter schema and are not redefined here.
 
 ### `Post`
 
-A *published* unit of content (always public when present in this table). Drafts
+A _published_ unit of content (always public when present in this table). Drafts
 do not live here — they live in `Draft`. A remix is a `Post` with
 `parentId IS NOT NULL`.
 
-| Field                    | Type      | Constraints                         | Notes |
-|--------------------------|-----------|-------------------------------------|-------|
-| `id`                     | String    | PK (cuid)                           | |
-| `authorId`               | String    | FK → `User.id`, on delete `SET NULL`| Anonymizes content if author deletes account (Principle V & VII) |
-| `title`                  | String    | Length 1..120                       | |
-| `body`                   | String    | Length 1..8000                      | Markdown text, sanitized at render |
-| `tone`                   | Tone      | Enum                                | Snapshotted at publish time |
-| `status`                 | PostStatus| Enum, default `PUBLISHED`           | `PUBLISHED` or `REMOVED` |
-| `publishedAt`            | DateTime  | not null                            | Set on first publish; never reset |
-| `editedAt`               | DateTime? |                                     | Set on each post edit; null if never edited |
-| `parentId`               | String?   | FK → `Post.id`, on delete `SET NULL`| Null for original posts; non-null for remixes |
-| `parentAuthorSnapshot`   | Json?     |                                     | `{ id: string, displayName: string }` captured at remix-draft creation; immutable |
-| `remixMode`              | RemixMode?| Enum                                | Required iff `parentId` set; null otherwise |
-| `likeCount`              | Int       | default 0, ≥ 0                      | Denormalized; truth is `Like` rows |
-| `commentCount`           | Int       | default 0, ≥ 0                      | Denormalized; truth is `Comment` rows |
-| `remixCount`             | Int       | default 0, ≥ 0                      | Denormalized; truth is child `Post.parentId` |
-| `createdAt`              | DateTime  | @default(now())                     | |
-| `updatedAt`              | DateTime  | @updatedAt                          | |
+| Field                  | Type       | Constraints                          | Notes                                                                             |
+| ---------------------- | ---------- | ------------------------------------ | --------------------------------------------------------------------------------- |
+| `id`                   | String     | PK (cuid)                            |                                                                                   |
+| `authorId`             | String     | FK → `User.id`, on delete `SET NULL` | Anonymizes content if author deletes account (Principle V & VII)                  |
+| `title`                | String     | Length 1..120                        |                                                                                   |
+| `body`                 | String     | Length 1..8000                       | Markdown text, sanitized at render                                                |
+| `tone`                 | Tone       | Enum                                 | Snapshotted at publish time                                                       |
+| `status`               | PostStatus | Enum, default `PUBLISHED`            | `PUBLISHED` or `REMOVED`                                                          |
+| `publishedAt`          | DateTime   | not null                             | Set on first publish; never reset                                                 |
+| `editedAt`             | DateTime?  |                                      | Set on each post edit; null if never edited                                       |
+| `parentId`             | String?    | FK → `Post.id`, on delete `SET NULL` | Null for original posts; non-null for remixes                                     |
+| `parentAuthorSnapshot` | Json?      |                                      | `{ id: string, displayName: string }` captured at remix-draft creation; immutable |
+| `remixMode`            | RemixMode? | Enum                                 | Required iff `parentId` set; null otherwise                                       |
+| `likeCount`            | Int        | default 0, ≥ 0                       | Denormalized; truth is `Like` rows                                                |
+| `commentCount`         | Int        | default 0, ≥ 0                       | Denormalized; truth is `Comment` rows                                             |
+| `remixCount`           | Int        | default 0, ≥ 0                       | Denormalized; truth is child `Post.parentId`                                      |
+| `createdAt`            | DateTime   | @default(now())                      |                                                                                   |
+| `updatedAt`            | DateTime   | @updatedAt                           |                                                                                   |
 
 **Enums**:
 
@@ -93,12 +94,14 @@ enum RemixMode   { REWRITE, CONTINUE, SUMMARIZE, CHANGE_TONE }
 ```
 
 **Indexes**:
+
 - Composite: `(status, publishedAt DESC, id DESC)` — primary feed query
   (decision 12 in research.md).
 - `(authorId, status, publishedAt DESC)` — public profile and own-published list.
 - `parentId` — for incrementing `remixCount` and child queries.
 
 **Constraints**:
+
 - CHECK: `(parentId IS NULL AND remixMode IS NULL) OR (parentId IS NOT NULL AND remixMode IS NOT NULL)`
 - CHECK: `likeCount >= 0 AND commentCount >= 0 AND remixCount >= 0`
 
@@ -112,7 +115,7 @@ enum RemixMode   { REWRITE, CONTINUE, SUMMARIZE, CHANGE_TONE }
 ```
 
 `REMOVED` posts are excluded from the feed and from public profiles. They
-remain readable only as the *target* of an attribution display on a remix
+remain readable only as the _target_ of an attribution display on a remix
 (text-only, non-clickable).
 
 ---
@@ -123,25 +126,27 @@ A private work-in-progress version owned by a single user. Never visible to
 anyone but the author. A draft becomes a `Post` via the `publish` operation;
 after publishing, the draft row is deleted in the same transaction.
 
-| Field                    | Type      | Constraints                          | Notes |
-|--------------------------|-----------|--------------------------------------|-------|
-| `id`                     | String    | PK (cuid)                            | |
-| `authorId`               | String    | FK → `User.id`, on delete `CASCADE`  | If user deletes account, drafts go too |
-| `title`                  | String?   | Length 0..120                        | May be empty during early authoring |
-| `body`                   | String?   | Length 0..8000                       | |
-| `tone`                   | Tone?     | Enum                                 | Selected during create flow |
-| `parentId`               | String?   | FK → `Post.id`, on delete `SET NULL` | If draft is a remix |
-| `parentAuthorSnapshot`   | Json?     |                                      | Captured at draft creation; required when `parentId` set |
-| `remixMode`              | RemixMode?| Enum                                 | Required iff `parentId` set |
-| `lastGenerationId`       | String?   | FK → `Generation.id`                 | Most recent AI output for this draft |
-| `lastSafetyCheckId`      | String?   | FK → `SafetyCheck.id`                | Last moderation result on AI output |
-| `createdAt`              | DateTime  | @default(now())                      | |
-| `updatedAt`              | DateTime  | @updatedAt                           | |
+| Field                  | Type       | Constraints                          | Notes                                                    |
+| ---------------------- | ---------- | ------------------------------------ | -------------------------------------------------------- |
+| `id`                   | String     | PK (cuid)                            |                                                          |
+| `authorId`             | String     | FK → `User.id`, on delete `CASCADE`  | If user deletes account, drafts go too                   |
+| `title`                | String?    | Length 0..120                        | May be empty during early authoring                      |
+| `body`                 | String?    | Length 0..8000                       |                                                          |
+| `tone`                 | Tone?      | Enum                                 | Selected during create flow                              |
+| `parentId`             | String?    | FK → `Post.id`, on delete `SET NULL` | If draft is a remix                                      |
+| `parentAuthorSnapshot` | Json?      |                                      | Captured at draft creation; required when `parentId` set |
+| `remixMode`            | RemixMode? | Enum                                 | Required iff `parentId` set                              |
+| `lastGenerationId`     | String?    | FK → `Generation.id`                 | Most recent AI output for this draft                     |
+| `lastSafetyCheckId`    | String?    | FK → `SafetyCheck.id`                | Last moderation result on AI output                      |
+| `createdAt`            | DateTime   | @default(now())                      |                                                          |
+| `updatedAt`            | DateTime   | @updatedAt                           |                                                          |
 
 **Indexes**:
+
 - `(authorId, updatedAt DESC)` — own profile drafts list.
 
 **Constraints**:
+
 - Reads MUST be filtered by `authorId == currentUserId`. The route handler
   layer is responsible; the data layer additionally enforces by always
   scoping the Prisma query in `draft.service.ts`.
@@ -165,18 +170,20 @@ Draft        ──discard──▶ (deleted)
 
 A flat (single-level, no threading) reply to a `PUBLISHED` post.
 
-| Field        | Type     | Constraints                          | Notes |
-|--------------|----------|--------------------------------------|-------|
-| `id`         | String   | PK (cuid)                            | |
-| `postId`     | String   | FK → `Post.id`, on delete `CASCADE`  | If post is hard-deleted, comments go |
-| `authorId`   | String   | FK → `User.id`, on delete `SET NULL` | Author deletion preserves the comment with `authorId = NULL` (rendered as "[removed]") |
-| `body`       | String   | Length 1..1000                       | |
-| `createdAt`  | DateTime | @default(now())                      | |
+| Field       | Type     | Constraints                          | Notes                                                                                  |
+| ----------- | -------- | ------------------------------------ | -------------------------------------------------------------------------------------- |
+| `id`        | String   | PK (cuid)                            |                                                                                        |
+| `postId`    | String   | FK → `Post.id`, on delete `CASCADE`  | If post is hard-deleted, comments go                                                   |
+| `authorId`  | String   | FK → `User.id`, on delete `SET NULL` | Author deletion preserves the comment with `authorId = NULL` (rendered as "[removed]") |
+| `body`      | String   | Length 1..1000                       |                                                                                        |
+| `createdAt` | DateTime | @default(now())                      |                                                                                        |
 
 **Indexes**:
+
 - `(postId, createdAt ASC)` — render comments under a post in chronological order.
 
 **Authorization**:
+
 - Create: any authenticated user on a `PUBLISHED` post.
 - Delete: only `authorId == currentUserId`.
 
@@ -189,15 +196,16 @@ A flat (single-level, no threading) reply to a `PUBLISHED` post.
 A unique pairing of `(userId, postId)`. Source of truth for the per-post like
 count.
 
-| Field        | Type     | Constraints                          | Notes |
-|--------------|----------|--------------------------------------|-------|
-| `userId`     | String   | FK → `User.id`, on delete `CASCADE`  | |
-| `postId`     | String   | FK → `Post.id`, on delete `CASCADE`  | |
-| `createdAt`  | DateTime | @default(now())                      | |
+| Field       | Type     | Constraints                         | Notes |
+| ----------- | -------- | ----------------------------------- | ----- |
+| `userId`    | String   | FK → `User.id`, on delete `CASCADE` |       |
+| `postId`    | String   | FK → `Post.id`, on delete `CASCADE` |       |
+| `createdAt` | DateTime | @default(now())                     |       |
 
 **Composite primary key**: `(userId, postId)` — guarantees one like per pair.
 
 **Indexes**:
+
 - `(postId)` — for "did this user like this?" lookups when paired with userId
   in the WHERE clause.
 - `(userId, createdAt DESC)` — future "things I liked" view (out of MVP scope
@@ -214,11 +222,11 @@ decide whether to bump the counter; on delete, conditional decrement.
 A user's private bookmark. Same shape as `Like` but represents a different
 user intention; private to its owner.
 
-| Field        | Type     | Constraints                          | Notes |
-|--------------|----------|--------------------------------------|-------|
-| `userId`     | String   | FK → `User.id`, on delete `CASCADE`  | |
-| `postId`     | String   | FK → `Post.id`, on delete `CASCADE`  | |
-| `createdAt`  | DateTime | @default(now())                      | |
+| Field       | Type     | Constraints                         | Notes |
+| ----------- | -------- | ----------------------------------- | ----- |
+| `userId`    | String   | FK → `User.id`, on delete `CASCADE` |       |
+| `postId`    | String   | FK → `Post.id`, on delete `CASCADE` |       |
+| `createdAt` | DateTime | @default(now())                     |       |
 
 **Composite primary key**: `(userId, postId)`.
 
@@ -236,22 +244,22 @@ service layer.
 A record of an AI generation event. Used both for product flow (the draft
 references its `lastGenerationId`) and cost tracking (Principle X).
 
-| Field            | Type           | Constraints                          | Notes |
-|------------------|----------------|--------------------------------------|-------|
-| `id`             | String         | PK (cuid)                            | |
-| `userId`         | String         | FK → `User.id`, on delete `CASCADE`  | |
-| `surface`        | GenerationSurface | Enum                              | `CREATE` or `REMIX` |
-| `mode`           | GenerationMode | Enum                                 | `CREATE`, `REWRITE`, `CONTINUE`, `SUMMARIZE`, `CHANGE_TONE` |
-| `provider`       | String         | Length 1..40                         | `openai`, `anthropic`, … |
-| `model`          | String         | Length 1..80                         | e.g., `gpt-4o-mini` |
-| `inputTokens`    | Int?           |                                      | Null when provider does not report |
-| `outputTokens`   | Int?           |                                      | Null when provider does not report |
-| `latencyMs`      | Int            |                                      | Wall-clock from request to response |
-| `status`         | GenerationStatus | Enum                               | `SUCCESS`, `SAFETY_REJECTED`, `ERROR` |
-| `errorMessage`   | String?        | Length 0..500                        | Set when `status = ERROR` |
-| `safetyCheckId`  | String?        | FK → `SafetyCheck.id`                | The safety check run on this output |
-| `parentPostId`   | String?        | FK → `Post.id`, on delete `SET NULL` | For remix generations only |
-| `createdAt`      | DateTime       | @default(now())                      | |
+| Field           | Type              | Constraints                          | Notes                                                       |
+| --------------- | ----------------- | ------------------------------------ | ----------------------------------------------------------- |
+| `id`            | String            | PK (cuid)                            |                                                             |
+| `userId`        | String            | FK → `User.id`, on delete `CASCADE`  |                                                             |
+| `surface`       | GenerationSurface | Enum                                 | `CREATE` or `REMIX`                                         |
+| `mode`          | GenerationMode    | Enum                                 | `CREATE`, `REWRITE`, `CONTINUE`, `SUMMARIZE`, `CHANGE_TONE` |
+| `provider`      | String            | Length 1..40                         | `openai`, `anthropic`, …                                    |
+| `model`         | String            | Length 1..80                         | e.g., `gpt-4o-mini`                                         |
+| `inputTokens`   | Int?              |                                      | Null when provider does not report                          |
+| `outputTokens`  | Int?              |                                      | Null when provider does not report                          |
+| `latencyMs`     | Int               |                                      | Wall-clock from request to response                         |
+| `status`        | GenerationStatus  | Enum                                 | `SUCCESS`, `SAFETY_REJECTED`, `ERROR`                       |
+| `errorMessage`  | String?           | Length 0..500                        | Set when `status = ERROR`                                   |
+| `safetyCheckId` | String?           | FK → `SafetyCheck.id`                | The safety check run on this output                         |
+| `parentPostId`  | String?           | FK → `Post.id`, on delete `SET NULL` | For remix generations only                                  |
+| `createdAt`     | DateTime          | @default(now())                      |                                                             |
 
 **Enums**:
 
@@ -262,6 +270,7 @@ enum GenerationStatus  { SUCCESS, SAFETY_REJECTED, ERROR }
 ```
 
 **Indexes**:
+
 - `(userId, createdAt DESC)` — per-user history and rate-limit audit.
 - `(provider, model, createdAt DESC)` — cost reporting by provider+model.
 
@@ -277,16 +286,16 @@ The verdict of a moderation call. Attached to AI outputs (via
 `Post.publishSafetyCheckId` if we choose to keep that link, or referenced
 in audit logs only).
 
-| Field           | Type      | Constraints              | Notes |
-|-----------------|-----------|--------------------------|-------|
-| `id`            | String    | PK (cuid)                | |
-| `provider`      | String    | Length 1..40             | `openai`, `perspective`, … |
-| `surface`       | SafetyCheckSurface | Enum            | `AI_OUTPUT`, `POST_PUBLISH`, `COMMENT_CREATE` |
-| `verdict`       | SafetyVerdict | Enum                 | `ALLOW`, `REJECT` |
-| `categories`    | String[]  | Empty array if `ALLOW`   | Flagged category keys, e.g. `["hate","violence/graphic"]` |
-| `reason`        | String?   | Length 0..200            | Human-readable summary shown to user on rejection |
-| `latencyMs`     | Int       |                          | |
-| `createdAt`     | DateTime  | @default(now())          | |
+| Field        | Type               | Constraints            | Notes                                                     |
+| ------------ | ------------------ | ---------------------- | --------------------------------------------------------- |
+| `id`         | String             | PK (cuid)              |                                                           |
+| `provider`   | String             | Length 1..40           | `openai`, `perspective`, …                                |
+| `surface`    | SafetyCheckSurface | Enum                   | `AI_OUTPUT`, `POST_PUBLISH`, `COMMENT_CREATE`             |
+| `verdict`    | SafetyVerdict      | Enum                   | `ALLOW`, `REJECT`                                         |
+| `categories` | String[]           | Empty array if `ALLOW` | Flagged category keys, e.g. `["hate","violence/graphic"]` |
+| `reason`     | String?            | Length 0..200          | Human-readable summary shown to user on rejection         |
+| `latencyMs`  | Int                |                        |                                                           |
+| `createdAt`  | DateTime           | @default(now())        |                                                           |
 
 **Enums**:
 

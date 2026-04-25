@@ -1,10 +1,12 @@
 <!-- SPECKIT START -->
+
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan
 at `specs/001-mvp-content-loop/plan.md` (and its companions
 `research.md`, `data-model.md`, `quickstart.md`, and `contracts/`).
 
 **Chosen MVP stack** (governed by `.specify/memory/constitution.md` v2.0.0):
+
 - Frontend: Next.js 15 App Router, TypeScript, Tailwind CSS, shadcn/ui;
   mobile-first PWA (manifest + service worker, installable).
 - Backend: Next.js Route Handlers as a thin transport layer over
@@ -29,4 +31,5 @@ Shared API contracts live in `src/lib/contracts/*.ts` (Zod schemas) and
 are documented in `specs/001-mvp-content-loop/contracts/`. They are the
 stable surface a future Expo / React Native client will consume —
 breaking changes to these contracts require a version bump.
+
 <!-- SPECKIT END -->

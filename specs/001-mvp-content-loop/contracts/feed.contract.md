@@ -7,10 +7,10 @@ Public, paginated, reverse-chronological list of `PUBLISHED` posts.
 - **Auth**: optional. Anonymous viewers receive `viewer` omitted on each card.
 - **Query parameters**:
 
-  | Name     | Type     | Default | Description |
-  |----------|----------|---------|-------------|
+  | Name     | Type     | Default | Description                            |
+  | -------- | -------- | ------- | -------------------------------------- |
   | `cursor` | string?  | none    | Opaque cursor returned by a prior page |
-  | `limit`  | integer? | `20`    | Page size, clamped 1..50 |
+  | `limit`  | integer? | `20`    | Page size, clamped 1..50               |
 
 - **Response 200**:
 
@@ -33,19 +33,18 @@ opens a post.
 ```ts
 interface FeedCardProjection {
   id: string;
-  author: AuthorProjection | null;       // null if author deleted account
+  author: AuthorProjection | null; // null if author deleted account
   title: string;
-  bodyPreview: string;                    // server-truncated, see below
+  bodyPreview: string; // server-truncated, see below
   tone: Tone;
-  publishedAt: string;                    // ISO 8601
+  publishedAt: string; // ISO 8601
   isRemix: boolean;
-  attribution:                            // present iff isRemix
-    | {
-        parent: { id: string; title: string; author: AuthorProjection } | null;
-        parentAuthorSnapshot: { id: string; displayName: string };
-        remixMode: RemixMode;
-      }
-    | null;
+  attribution: // present iff isRemix
+  {
+    parent: { id: string; title: string; author: AuthorProjection } | null;
+    parentAuthorSnapshot: { id: string; displayName: string };
+    remixMode: RemixMode;
+  } | null;
   likeCount: number;
   commentCount: number;
   remixCount: number;

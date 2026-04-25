@@ -12,3 +12,11 @@ yarn.lock
 pnpm-lock.yaml
 *.min.js
 *.min.css
+
+# Framework / vendor files — owned by Claude Code and Spec Kit; not our code.
+# Reformatting them creates noisy diffs and conflicts on tool upgrades.
+.claude/
+.specify/
+
+# Generated migrations are owned by Prisma; don't reformat.
+prisma/migrations/

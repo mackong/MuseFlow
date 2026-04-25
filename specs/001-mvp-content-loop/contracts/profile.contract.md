@@ -20,15 +20,15 @@ shell payload small on mobile.
       displayName: string;
       description: string | null;
       image: string | null;
-      email: string;             // shown only to self
+      email: string; // shown only to self
       createdAt: string;
-    };
+    }
     counts: {
       publishedPosts: number;
       drafts: number;
       saved: number;
       authoredRemixes: number;
-    };
+    }
   }
   ```
 
@@ -60,7 +60,7 @@ Same shape as `GET /api/saves` (defined in interactions.contract.md).
 
 ### `GET /api/me/remixes`
 
-Authenticated user's own *authored* remixes (i.e., posts where they are the
+Authenticated user's own _authored_ remixes (i.e., posts where they are the
 remix author), newest-first.
 
 - **Auth**: required.
@@ -100,7 +100,7 @@ Update the authenticated user's editable profile fields.
 
 ## `GET /api/profile/[username]`
 
-Fetch any user's *public* profile shell.
+Fetch any user's _public_ profile shell.
 
 - **Auth**: optional.
 - **Response 200**:
@@ -116,10 +116,10 @@ Fetch any user's *public* profile shell.
       createdAt: string;
       // NOTE: email is NEVER included here, even for the requester themselves.
       // Use GET /api/me for self-fetching.
-    };
+    }
     counts: {
-      publishedPosts: number;     // includes published remixes
-    };
+      publishedPosts: number; // includes published remixes
+    }
   }
   ```
 
@@ -141,13 +141,13 @@ remixes).
 
 ## Authorization summary
 
-| Endpoint                                | Anonymous | Self  | Other auth user |
-|-----------------------------------------|-----------|-------|-----------------|
-| `GET /api/me*`                          | 401       | 200   | 200 (own data)  |
-| `PATCH /api/me`                         | 401       | 200   | 200 (own data)  |
-| `GET /api/profile/[username]*`          | 200       | 200   | 200             |
-| Drafts and saves under `/api/me/...`    | 401       | 200   | 200 (own data)  |
-| Drafts/saves under `/api/profile/...`   | (not exposed) | (not exposed) | (not exposed) |
+| Endpoint                              | Anonymous     | Self          | Other auth user |
+| ------------------------------------- | ------------- | ------------- | --------------- |
+| `GET /api/me*`                        | 401           | 200           | 200 (own data)  |
+| `PATCH /api/me`                       | 401           | 200           | 200 (own data)  |
+| `GET /api/profile/[username]*`        | 200           | 200           | 200             |
+| Drafts and saves under `/api/me/...`  | 401           | 200           | 200 (own data)  |
+| Drafts/saves under `/api/profile/...` | (not exposed) | (not exposed) | (not exposed)   |
 
 ---
 

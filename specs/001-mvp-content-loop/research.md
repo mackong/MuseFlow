@@ -13,6 +13,7 @@ design. Each entry follows the Decision / Rationale / Alternatives format.
 provider (GitHub) at MVP.
 
 **Rationale**:
+
 - User input explicitly prefers Auth.js if open-source simplicity is enough.
   It is.
 - Auth.js v5 integrates natively with Next.js App Router, supports edge
@@ -24,12 +25,13 @@ provider (GitHub) at MVP.
   GitHub OAuth covers the technical-creator persona.
 
 **Alternatives considered**:
-- *Clerk*: Faster to ship a polished UI; comes with managed user-management
+
+- _Clerk_: Faster to ship a polished UI; comes with managed user-management
   pages. Rejected because (a) it is a paid SaaS, (b) it owns user data, which
   conflicts with Principle VII (Privacy and Data Control) on default
   data-residency assumptions, and (c) the Auth.js Prisma adapter is sufficient
   for MVP needs.
-- *Supabase Auth*: Bundled with Supabase Postgres (an alternative DB host
+- _Supabase Auth_: Bundled with Supabase Postgres (an alternative DB host
   below). Rejected because we want auth choice independent of DB-host choice;
   Auth.js works with whichever Postgres host we pick.
 
@@ -40,6 +42,7 @@ provider (GitHub) at MVP.
 **Decision**: Neon for the MVP.
 
 **Rationale**:
+
 - Neon's branch-per-PR model lines up with Vercel preview deployments: each
   preview gets a Postgres branch, run migrations, run tests, throw it away.
   This is high leverage for the testing gates required by Principle XI.
@@ -49,14 +52,15 @@ provider (GitHub) at MVP.
 - Free tier is sufficient for MVP scale (≤ 10k users target in plan.md).
 
 **Alternatives considered**:
-- *Supabase*: Strong if we wanted bundled auth + storage + edge functions.
+
+- _Supabase_: Strong if we wanted bundled auth + storage + edge functions.
   Rejected because we have already chosen Auth.js (decision 1) and we are not
   using object storage at MVP (text-only per Principle XII), so the bundle
   benefit is small. Keeping Supabase as a documented fallback if Neon's
   serverless pricing changes.
-- *Vercel Postgres*: Tightest Vercel integration but currently a thin wrapper
+- _Vercel Postgres_: Tightest Vercel integration but currently a thin wrapper
   on top of Neon; redundant.
-- *Self-hosted Postgres*: Higher operational burden, conflicts with Principle
+- _Self-hosted Postgres_: Higher operational burden, conflicts with Principle
   XII.
 
 **Migration path**: All DB access goes through Prisma. Switching hosts is a
@@ -72,6 +76,7 @@ Default model: a cost-efficient general-purpose model (configured via env;
 recommended start: `gpt-4o-mini` or equivalent).
 
 **Rationale**:
+
 - User input specified OpenAI-compatible API.
 - The official SDK supports `baseURL` overrides, which means the same code
   also works with Together, OpenRouter, Groq, vLLM, Ollama, etc., without
@@ -86,14 +91,15 @@ depends on the `AIProvider` interface in
 the Provider Gate from the constitution.
 
 **Alternatives considered**:
-- *Anthropic SDK directly*: Excellent quality, but requires its own adapter.
+
+- _Anthropic SDK directly_: Excellent quality, but requires its own adapter.
   Tracked as a v1.1 candidate. Will be added as `anthropic-provider.ts`
   implementing the same interface.
-- *Vercel AI SDK*: Adds an extra abstraction layer and pulls in client-side
+- _Vercel AI SDK_: Adds an extra abstraction layer and pulls in client-side
   helpers we do not need server-side. The cost-tracking surface (token counts)
   is also less explicit. Rejected for MVP; revisit if streaming UX gets
   complex.
-- *LangChain*: Out of scope at MVP. Too much surface area, cost-tracking is
+- _LangChain_: Out of scope at MVP. Too much surface area, cost-tracking is
   indirect, conflicts with Principle XII.
 
 ---
@@ -106,6 +112,7 @@ interface. Categories used: `hate`, `hate/threatening`, `harassment`,
 `violence/graphic`. Threshold: provider-default flagged categories.
 
 **Rationale**:
+
 - Free of charge, low-latency, returns category-level breakdown.
 - Aligns with Principle VI (Safety by Design): we get a discrete category list
   to surface as a human-readable rejection reason.
@@ -113,6 +120,7 @@ interface. Categories used: `hate`, `hate/threatening`, `harassment`,
   or layered approaches without rewriting feature code.
 
 **What we do with the result**:
+
 - AI generation: if any flagged category is true, surface a rejection state in
   the create/remix UI with the category as the reason. The user can edit and
   retry, regenerate, or abandon.
@@ -121,10 +129,11 @@ interface. Categories used: `hate`, `hate/threatening`, `harassment`,
 - Comments: same check at submit time.
 
 **Alternatives considered**:
-- *Perspective API*: Toxicity-focused; less category granularity than OpenAI
+
+- _Perspective API_: Toxicity-focused; less category granularity than OpenAI
   Moderation; requires Google Cloud project. Rejected for MVP simplicity but
   documented as a future provider.
-- *No moderation, defer to manual review*: Violates Principle VI directly.
+- _No moderation, defer to manual review_: Violates Principle VI directly.
   Rejected.
 
 ---
@@ -134,13 +143,13 @@ interface. Categories used: `hate`, `hate/threatening`, `harassment`,
 **Decision**: Five generation modes implemented as discrete prompt templates
 in `src/server/services/ai/prompts.ts`:
 
-| Mode        | Surface | Inputs                                | Output shape                  |
-|-------------|---------|---------------------------------------|-------------------------------|
-| `create`    | US1     | idea (text), tone (enum)              | `{ title, body }` JSON        |
-| `rewrite`   | US4     | original post (title+body)            | `{ title, body }` JSON        |
-| `continue`  | US4     | original post                         | `{ title, body }` JSON        |
-| `summarize` | US4     | original post                         | `{ title, body }` JSON        |
-| `change-tone` | US4   | original post, target tone (enum)     | `{ title, body }` JSON        |
+| Mode          | Surface | Inputs                            | Output shape           |
+| ------------- | ------- | --------------------------------- | ---------------------- |
+| `create`      | US1     | idea (text), tone (enum)          | `{ title, body }` JSON |
+| `rewrite`     | US4     | original post (title+body)        | `{ title, body }` JSON |
+| `continue`    | US4     | original post                     | `{ title, body }` JSON |
+| `summarize`   | US4     | original post                     | `{ title, body }` JSON |
+| `change-tone` | US4     | original post, target tone (enum) | `{ title, body }` JSON |
 
 All modes use JSON-mode (response_format: json_object) and return a strict
 `{ title, body }` shape validated by Zod (`AiGenerateResponseSchema` in
@@ -154,9 +163,10 @@ spec scope; no need for a generic `prompt` field that would require its own
 moderation considerations.
 
 **Alternatives considered**:
-- *Free-form text + post-hoc title extraction*: Rejected as fragile; extracting
+
+- _Free-form text + post-hoc title extraction_: Rejected as fragile; extracting
   a title from a wall of text leads to inconsistent UX.
-- *Function calling / tool use for output shape*: Marginally more reliable but
+- _Function calling / tool use for output shape_: Marginally more reliable but
   requires per-provider tweaks. JSON-mode is universally supported by
   OpenAI-compatible providers.
 
@@ -171,6 +181,7 @@ and `generate:remix:{userId}`. Default windows from plan.md cost envelopes:
 `slidingWindow`.
 
 **Rationale**:
+
 - Constitution Principle X requires per-user rate limits and a clear
   user-facing message at exhaustion.
 - Upstash is HTTP-based (no persistent connections), works on Vercel
@@ -179,9 +190,10 @@ and `generate:remix:{userId}`. Default windows from plan.md cost envelopes:
   future native client calls the API directly.
 
 **Alternatives considered**:
-- *In-process counter*: Wrong — serverless functions are stateless across
+
+- _In-process counter_: Wrong — serverless functions are stateless across
   cold starts; counts would be unreliable.
-- *Database-backed counter (Postgres)*: Works but adds DB load on a hot path.
+- _Database-backed counter (Postgres)_: Works but adds DB load on a hot path.
   Acceptable fallback if we later remove the Upstash dependency.
 
 ---
@@ -193,20 +205,22 @@ Query with a 30-second focus-and-interval revalidation, plus an optimistic
 prepend on the publishing user's own session. No websockets, no SSE.
 
 **Rationale**:
+
 - Principle XII (Fast MVP Iteration). Real-time push is non-trivial on Vercel
   serverless and adds infrastructure surface.
 - SC-005 requires "within 10 seconds" propagation; a 30s revalidate combined
   with on-focus revalidation achieves this in the common case (user is
-  actively viewing). Strict 10s for an *idle* session is documented as best-
+  actively viewing). Strict 10s for an _idle_ session is documented as best-
   effort and revisited post-launch.
 - Optimistic prepend on the publisher's own session covers the "user just
   published — they want to see it appear" UX without server push.
 
 **Alternatives considered**:
-- *Server-Sent Events*: Cleaner real-time UX but Vercel serverless function
+
+- _Server-Sent Events_: Cleaner real-time UX but Vercel serverless function
   duration limits make long-lived SSE awkward. Tracked as a v1.1 upgrade if
   retention metrics show feed stickiness matters.
-- *Pusher / Ably*: External dependency, monthly cost, Principle XII tension.
+- _Pusher / Ably_: External dependency, monthly cost, Principle XII tension.
   Rejected.
 
 ---
@@ -215,12 +229,14 @@ prepend on the publishing user's own session. No websockets, no SSE.
 
 **Decision**: Hand-rolled service worker via `next-pwa` (or
 `@serwist/next` if `next-pwa` lags Next 15 support) with:
+
 - Web App Manifest at `src/app/manifest.ts`
 - Pre-cached app shell + skeleton routes
 - Network-first strategy for `/api/*` and `/feed`
 - Cache-first for static assets and the offline shell
 
 **Rationale**:
+
 - Principle II requires installable PWA + app-like nav; this is the minimum
   viable implementation.
 - Avoids hand-writing a service worker from scratch (Principle XII).
@@ -228,8 +244,9 @@ prepend on the publishing user's own session. No websockets, no SSE.
   proper icons.
 
 **Alternatives considered**:
-- *No PWA, just responsive web*: Violates Principle II.
-- *Capacitor / Expo wrapper*: Out of MVP scope (Principle XII excludes native
+
+- _No PWA, just responsive web_: Violates Principle II.
+- _Capacitor / Expo wrapper_: Out of MVP scope (Principle XII excludes native
   builds).
 
 ---
@@ -237,6 +254,7 @@ prepend on the publishing user's own session. No websockets, no SSE.
 ## 9. Test stack
 
 **Decision**:
+
 - **Unit**: Vitest with Node test environment for all `src/server/services/*`
   and `src/lib/*` modules. Database access mocked via `prismock` or in-memory
   Prisma; AI and Moderator interfaces injected via fakes from `tests/helpers/`.
@@ -249,6 +267,7 @@ prepend on the publishing user's own session. No websockets, no SSE.
   start.
 
 **Rationale**:
+
 - Vitest is the de-facto Next.js + TS unit framework, fast cold start, ESM
   native.
 - Playwright on a mobile viewport directly enforces Principle I (Mobile-First
@@ -257,8 +276,9 @@ prepend on the publishing user's own session. No websockets, no SSE.
   resists scope creep.
 
 **Alternatives considered**:
-- *Jest*: Slower, more config friction with ESM and Next 15. Rejected.
-- *Cypress*: Comparable to Playwright; Playwright wins on mobile emulation
+
+- _Jest_: Slower, more config friction with ESM and Next 15. Rejected.
+- _Cypress_: Comparable to Playwright; Playwright wins on mobile emulation
   fidelity and parallelism.
 
 ---
@@ -273,6 +293,7 @@ isolated by Postgres' default `READ COMMITTED`; the unique constraint
 guarantees idempotency.
 
 **Rationale**:
+
 - Reading `likeCount` from the post row is a single-row read suitable for
   feed rendering (no aggregate query per post).
 - The unique constraint is the source of truth for "exactly one like per
@@ -282,9 +303,10 @@ guarantees idempotency.
   unique constraint and short-circuits.
 
 **Alternatives considered**:
-- *Compute count on read via `SELECT COUNT(*)`*: Simpler write path but
+
+- _Compute count on read via `SELECT COUNT(_)`\*: Simpler write path but
   expensive at feed render time. Rejected.
-- *Redis counter*: Adds infrastructure for a small win. Rejected at MVP.
+- _Redis counter_: Adds infrastructure for a small win. Rejected at MVP.
 
 The same pattern applies to `Post.commentCount` and `Post.remixCount`.
 
@@ -299,6 +321,7 @@ The same pattern applies to `Post.commentCount` and `Post.remixCount`.
   parent's author at remix-draft creation time, immutable thereafter
 
 **Rationale**:
+
 - `parentId` lets us walk the lineage and increment `parent.remixCount`
   atomically.
 - `parentAuthorSnapshot` is the durable record needed for Principle V: even
@@ -309,9 +332,10 @@ The same pattern applies to `Post.commentCount` and `Post.remixCount`.
   snapshot survives.
 
 **Alternatives considered**:
-- *Junction table `Remix(postId, parentId)`*: Adds a join for the most common
+
+- _Junction table `Remix(postId, parentId)`_: Adds a join for the most common
   read; no upside given remixes are 1-to-1 with parents.
-- *No author snapshot*: Saves a column but breaks Principle V when an author
+- _No author snapshot_: Saves a column but breaks Principle V when an author
   deletes their account.
 
 ---
@@ -322,6 +346,7 @@ The same pattern applies to `Post.commentCount` and `Post.remixCount`.
 Page size 20. Cursor encodes the last seen `publishedAt` and `id`.
 
 **Rationale**:
+
 - Stable under concurrent inserts (a user-time pair is unique enough to avoid
   skipping or duplicating posts as new ones arrive at the top).
 - Performant with a composite index on `(status, publishedAt DESC, id DESC)`.
@@ -329,7 +354,8 @@ Page size 20. Cursor encodes the last seen `publishedAt` and `id`.
   scroll position.
 
 **Alternatives considered**:
-- *Offset/limit*: Simpler API, broken UX under live insertion. Rejected.
+
+- _Offset/limit_: Simpler API, broken UX under live insertion. Rejected.
 
 ---
 
@@ -339,6 +365,7 @@ Page size 20. Cursor encodes the last seen `publishedAt` and `id`.
 post. Renames are reflected immediately on all of the user's content.
 
 **Rationale**:
+
 - The spec explicitly states: "historical attribution on remixes and comments
   updates to reflect the current display name (one identity, current name)".
 - Snapshotting display name on every Post / Comment would diverge from this.
@@ -368,21 +395,21 @@ in any task generated from this plan. Listed here so the next phase
 
 ## Resolution status
 
-| Open question                            | Resolved in section |
-|------------------------------------------|---------------------|
-| Which auth?                              | 1                   |
-| Which Postgres host?                     | 2                   |
-| Which AI provider implementation?        | 3                   |
-| Which moderation provider?               | 4                   |
-| How to validate AI output shape?         | 5                   |
-| How to enforce rate limits?              | 6                   |
-| How to keep feed fresh?                  | 7                   |
-| How to deliver the PWA pieces?           | 8                   |
-| Which test frameworks?                   | 9                   |
-| How to keep like counts accurate?        | 10                  |
-| How to model remix attribution?          | 11                  |
-| How to paginate the feed?                | 12                  |
-| Display-name update propagation?         | 13                  |
+| Open question                     | Resolved in section |
+| --------------------------------- | ------------------- |
+| Which auth?                       | 1                   |
+| Which Postgres host?              | 2                   |
+| Which AI provider implementation? | 3                   |
+| Which moderation provider?        | 4                   |
+| How to validate AI output shape?  | 5                   |
+| How to enforce rate limits?       | 6                   |
+| How to keep feed fresh?           | 7                   |
+| How to deliver the PWA pieces?    | 8                   |
+| Which test frameworks?            | 9                   |
+| How to keep like counts accurate? | 10                  |
+| How to model remix attribution?   | 11                  |
+| How to paginate the feed?         | 12                  |
+| Display-name update propagation?  | 13                  |
 
 All `NEEDS CLARIFICATION` markers from Technical Context have been resolved.
 Phase 1 may proceed.

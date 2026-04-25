@@ -14,7 +14,7 @@ higher-level endpoint that wraps this generation plus draft creation — see
   // Create from idea
   {
     mode: "CREATE";
-    idea: string;          // length 1..500
+    idea: string; // length 1..500
     tone: Tone;
   }
 
@@ -22,7 +22,7 @@ higher-level endpoint that wraps this generation plus draft creation — see
   // for direct client use (clients should call POST /api/remix/[postId] instead).
   {
     mode: "REWRITE" | "CONTINUE" | "SUMMARIZE";
-    sourcePostId: string;   // a published post the requester can read
+    sourcePostId: string; // a published post the requester can read
   }
 
   {
@@ -93,10 +93,10 @@ higher-level endpoint that wraps this generation plus draft creation — see
 When the rate limit is enforced, the response (success or failure) includes
 the following headers — useful for client-side UX:
 
-| Header                  | Meaning |
-|-------------------------|---------|
-| `X-RateLimit-Limit`     | Window size (e.g. `20`) |
-| `X-RateLimit-Remaining` | Calls left in the current window |
+| Header                  | Meaning                               |
+| ----------------------- | ------------------------------------- |
+| `X-RateLimit-Limit`     | Window size (e.g. `20`)               |
+| `X-RateLimit-Remaining` | Calls left in the current window      |
 | `X-RateLimit-Reset`     | Unix timestamp when the window resets |
 
 On `429 rate_limited`, the body includes `details.retryAfterSeconds` and the
@@ -113,9 +113,9 @@ Constitution Principle VIII.
 // src/server/services/ai/provider.interface.ts
 export interface AIGenerationRequest {
   mode: "CREATE" | "REWRITE" | "CONTINUE" | "SUMMARIZE" | "CHANGE_TONE";
-  idea?: string;                             // for mode = CREATE
-  source?: { title: string; body: string };  // for remix modes
-  tone?: Tone;                                // for CREATE and CHANGE_TONE
+  idea?: string; // for mode = CREATE
+  source?: { title: string; body: string }; // for remix modes
+  tone?: Tone; // for CREATE and CHANGE_TONE
 }
 
 export interface AIGenerationResult {
@@ -127,13 +127,14 @@ export interface AIGenerationResult {
 }
 
 export interface AIProvider {
-  readonly name: string;     // "openai", "anthropic", ...
-  readonly model: string;    // configured model id
+  readonly name: string; // "openai", "anthropic", ...
+  readonly model: string; // configured model id
   generate(req: AIGenerationRequest): Promise<AIGenerationResult>;
 }
 ```
 
 The service layer wraps every `provider.generate(...)` call with:
+
 1. Rate-limit check (throws `RateLimitedError` → 429).
 2. Latency timer.
 3. JSON-shape validation of `output` against
@@ -149,10 +150,11 @@ discipline is what makes a provider swap a single-file change.
 ## Prompt design (informative, not normative)
 
 Concrete prompt strings live in `src/server/services/ai/prompts.ts`. The
-contract guarantees the *shape* of the output but not its style; prompts can
+contract guarantees the _shape_ of the output but not its style; prompts can
 be tuned without changing this contract.
 
 System messages MUST instruct the model to:
+
 - Return strict JSON `{ "title": string, "body": string }`.
 - Respect the requested tone.
 - Avoid adding meta commentary about the request (no "Sure! Here's…").

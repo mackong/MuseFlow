@@ -6,7 +6,7 @@
 the implementation phase). This directory is the design specification of
 those schemas.
 
-These contracts are the *stable* surface that backend services expose. Per
+These contracts are the _stable_ surface that backend services expose. Per
 Constitution Principle IX (API-First Backend Design), the same contract files
 are intended to be importable by a future Expo / React Native client; route
 handlers in `src/app/api/**` are a thin transport adapter only.
@@ -29,35 +29,37 @@ handlers in `src/app/api/**` are a thin transport adapter only.
     "error": {
       "code": "string-tag",
       "message": "human-readable",
-      "details": { /* optional, error-specific */ }
+      "details": {
+        /* optional, error-specific */
+      }
     }
   }
   ```
 
   Common codes used across endpoints:
 
-  | Code                      | HTTP | Meaning |
-  |---------------------------|------|---------|
-  | `unauthenticated`         | 401  | Auth required and missing/invalid |
-  | `forbidden`               | 403  | Authenticated but not allowed |
-  | `not_found`               | 404  | Target does not exist |
-  | `validation_failed`       | 400  | Request body failed schema |
-  | `safety_rejected`         | 422  | Content rejected by moderation. `details.categories` and `details.reason` provided |
-  | `rate_limited`            | 429  | Per-user AI rate limit reached. `details.retryAfterSeconds` provided |
-  | `ai_provider_error`       | 502  | AI generation failed upstream |
-  | `conflict`                | 409  | Idempotent retry conflict (rare; toggle endpoints handle this internally) |
-  | `internal_error`          | 500  | Unexpected server error |
+  | Code                | HTTP | Meaning                                                                            |
+  | ------------------- | ---- | ---------------------------------------------------------------------------------- |
+  | `unauthenticated`   | 401  | Auth required and missing/invalid                                                  |
+  | `forbidden`         | 403  | Authenticated but not allowed                                                      |
+  | `not_found`         | 404  | Target does not exist                                                              |
+  | `validation_failed` | 400  | Request body failed schema                                                         |
+  | `safety_rejected`   | 422  | Content rejected by moderation. `details.categories` and `details.reason` provided |
+  | `rate_limited`      | 429  | Per-user AI rate limit reached. `details.retryAfterSeconds` provided               |
+  | `ai_provider_error` | 502  | AI generation failed upstream                                                      |
+  | `conflict`          | 409  | Idempotent retry conflict (rare; toggle endpoints handle this internally)          |
+  | `internal_error`    | 500  | Unexpected server error                                                            |
 
 ## Files
 
-| File                                | Resources covered |
-|-------------------------------------|-------------------|
-| [posts.contract.md](./posts.contract.md)         | Drafts, posts, edit, delete, publish, remix-draft creation |
-| [interactions.contract.md](./interactions.contract.md) | Likes, saves, comments |
-| [ai.contract.md](./ai.contract.md)               | AI generation (create + remix modes), rate-limit surface |
-| [feed.contract.md](./feed.contract.md)           | Public feed listing |
-| [profile.contract.md](./profile.contract.md)     | Own profile + public profile |
-| [moderation.contract.md](./moderation.contract.md) | Server-internal moderation interface (no public route) |
+| File                                                   | Resources covered                                          |
+| ------------------------------------------------------ | ---------------------------------------------------------- |
+| [posts.contract.md](./posts.contract.md)               | Drafts, posts, edit, delete, publish, remix-draft creation |
+| [interactions.contract.md](./interactions.contract.md) | Likes, saves, comments                                     |
+| [ai.contract.md](./ai.contract.md)                     | AI generation (create + remix modes), rate-limit surface   |
+| [feed.contract.md](./feed.contract.md)                 | Public feed listing                                        |
+| [profile.contract.md](./profile.contract.md)           | Own profile + public profile                               |
+| [moderation.contract.md](./moderation.contract.md)     | Server-internal moderation interface (no public route)     |
 
 ## Auth endpoints
 

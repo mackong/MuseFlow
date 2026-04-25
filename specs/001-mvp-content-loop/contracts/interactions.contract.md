@@ -13,8 +13,8 @@ retry: the operation reflects the user's intent regardless of repeat clicks.
 
   ```ts
   {
-    liked: boolean;        // current state after the toggle
-    likeCount: number;     // current count after the toggle
+    liked: boolean; // current state after the toggle
+    likeCount: number; // current count after the toggle
   }
   ```
 
@@ -58,7 +58,7 @@ post projection plus the `savedAt` timestamp.
   {
     saves: Array<{
       savedAt: string;
-      post: PostProjection;     // with viewer.{liked,saved} populated
+      post: PostProjection; // with viewer.{liked,saved} populated
     }>;
     nextCursor: string | null;
   }
@@ -80,7 +80,10 @@ Create a comment on a published post.
 - **Request body**:
 
   ```ts
-  { postId: string; body: string }   // body length 1..1000
+  {
+    postId: string;
+    body: string;
+  } // body length 1..1000
   ```
 
 - **Response 201**: `{ comment: CommentProjection }`
@@ -124,7 +127,7 @@ Delete the requester's own comment.
 interface CommentProjection {
   id: string;
   postId: string;
-  author: AuthorProjection | null;   // null if author deleted account
+  author: AuthorProjection | null; // null if author deleted account
   body: string;
   createdAt: string;
   // Per-viewer state (omitted for anonymous viewers)
@@ -142,7 +145,7 @@ Start a remix from a published post. Creates a new draft seeded by an AI
 generation in the chosen mode and pre-attributed to the source. The user is
 then routed to the draft editor.
 
-This endpoint is the *user-facing* remix entry point. Internally it composes
+This endpoint is the _user-facing_ remix entry point. Internally it composes
 `ai.service.generate(REMIX, mode)` + `draft.service.createRemixDraft(...)` +
 `moderation.service.check(AI_OUTPUT)`.
 
@@ -168,7 +171,7 @@ This endpoint is the *user-facing* remix entry point. Internally it composes
   }
   ```
 
-  Note that `verdict: "REJECT"` is returned with `201` because the *draft*
+  Note that `verdict: "REJECT"` is returned with `201` because the _draft_
   was created successfully — only the AI output is flagged. The editor
   displays the rejection state and offers "Regenerate" / "Edit and try
   again" / "Discard". This matches FR-009 (rejection MUST preserve the user's
@@ -186,7 +189,7 @@ This endpoint is the *user-facing* remix entry point. Internally it composes
   - On AI safety reject: draft still created, with `lastSafetyCheck = REJECT`.
   - On AI provider error: NO draft created (atomic).
 - **Note**: Original post's `remixCount` is NOT incremented here —
-  incrementation happens at *publish* time of the remix
+  incrementation happens at _publish_ time of the remix
   (`POST /api/drafts/[id]/publish`). This keeps the count semantically
   meaningful as "remixes that exist publicly".
 

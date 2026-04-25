@@ -23,15 +23,15 @@ export type SafetyCategory =
   | "violence/graphic";
 
 export interface ModerationRequest {
-  text: string;                     // The full text to evaluate
+  text: string; // The full text to evaluate
   surface: "AI_OUTPUT" | "POST_PUBLISH" | "COMMENT_CREATE";
 }
 
 export interface ModerationResult {
   verdict: "ALLOW" | "REJECT";
-  categories: SafetyCategory[];     // empty when ALLOW
-  reason: string | null;            // non-null and human-readable when REJECT
-  rawProvider: string;              // "openai", "perspective", ...
+  categories: SafetyCategory[]; // empty when ALLOW
+  reason: string | null; // non-null and human-readable when REJECT
+  rawProvider: string; // "openai", "perspective", ...
   latencyMs: number;
 }
 
@@ -43,21 +43,21 @@ export interface Moderator {
 
 ## Where it is called
 
-| Call site                                     | Surface          | When |
-|-----------------------------------------------|------------------|------|
-| `ai.service.ts.generate(...)`                 | `AI_OUTPUT`      | After every successful provider call, before returning to caller |
-| `post.service.ts.publishDraft(draftId)`       | `POST_PUBLISH`   | Before inserting the `Post` row, on the user's final edited content |
-| `post.service.ts.editPost(postId, patch)`     | `POST_PUBLISH`   | Before applying an edit to a published post |
-| `comment.service.ts.create(postId, body)`     | `COMMENT_CREATE` | Before inserting the `Comment` row |
+| Call site                                 | Surface          | When                                                                |
+| ----------------------------------------- | ---------------- | ------------------------------------------------------------------- |
+| `ai.service.ts.generate(...)`             | `AI_OUTPUT`      | After every successful provider call, before returning to caller    |
+| `post.service.ts.publishDraft(draftId)`   | `POST_PUBLISH`   | Before inserting the `Post` row, on the user's final edited content |
+| `post.service.ts.editPost(postId, patch)` | `POST_PUBLISH`   | Before applying an edit to a published post                         |
+| `comment.service.ts.create(postId, body)` | `COMMENT_CREATE` | Before inserting the `Comment` row                                  |
 
 ## Behavior on REJECT
 
-| Call site                  | Action |
-|----------------------------|--------|
-| AI generation              | Service returns successful response with `safety.verdict = REJECT`; no error thrown. UI shows rejection state and offers Regenerate / Edit / Discard. The draft retains the safety-check link (`Draft.lastSafetyCheckId`). |
-| Post publish               | Service throws `SafetyRejectedError`; route handler maps to HTTP `422 safety_rejected` with `details.categories` and `details.reason`. The draft is preserved untouched. |
-| Post edit                  | Same as Post publish: throws, draft of the proposed edit is NOT stored as a new resource (the user's local form state holds it client-side). |
-| Comment create             | Service throws `SafetyRejectedError`; route handler maps to HTTP `422 safety_rejected`. The pending comment text is NOT stored. |
+| Call site      | Action                                                                                                                                                                                                                     |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AI generation  | Service returns successful response with `safety.verdict = REJECT`; no error thrown. UI shows rejection state and offers Regenerate / Edit / Discard. The draft retains the safety-check link (`Draft.lastSafetyCheckId`). |
+| Post publish   | Service throws `SafetyRejectedError`; route handler maps to HTTP `422 safety_rejected` with `details.categories` and `details.reason`. The draft is preserved untouched.                                                   |
+| Post edit      | Same as Post publish: throws, draft of the proposed edit is NOT stored as a new resource (the user's local form state holds it client-side).                                                                               |
+| Comment create | Service throws `SafetyRejectedError`; route handler maps to HTTP `422 safety_rejected`. The pending comment text is NOT stored.                                                                                            |
 
 ## What MUST be persisted
 
@@ -77,6 +77,7 @@ according to log retention policy (out of scope for this contract).
 ## Provider swap discipline
 
 To swap providers (e.g., add Perspective):
+
 1. Create `src/server/services/moderation/perspective-moderator.ts`
    implementing `Moderator`.
 2. Map provider-native categories to the canonical `SafetyCategory` union.
@@ -96,10 +97,10 @@ own service-level rate limits are the only constraint.
 
 ## Error mapping
 
-| Internal error            | HTTP from outer route handler                    |
-|---------------------------|--------------------------------------------------|
-| `SafetyRejectedError`     | `422 safety_rejected` with `details`              |
-| Provider error / timeout  | `503 internal_error` (we do NOT publish on a failed safety check — failing closed is the correct posture for Principle VI) |
+| Internal error           | HTTP from outer route handler                                                                                              |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| `SafetyRejectedError`    | `422 safety_rejected` with `details`                                                                                       |
+| Provider error / timeout | `503 internal_error` (we do NOT publish on a failed safety check — failing closed is the correct posture for Principle VI) |
 
 Failing closed means: if the moderation provider is down, publishing is
 blocked with a generic "we couldn't verify your post; please try again

@@ -26,9 +26,7 @@ interface AuthorProjection {
 // Attribution projection — sent to clients that render remixes
 interface AttributionProjection {
   // The current parent post if it still exists; null if removed
-  parent:
-    | { id: string; title: string; author: AuthorProjection }
-    | null;
+  parent: { id: string; title: string; author: AuthorProjection } | null;
   // Always present (snapshot at draft time); used when parent is null
   parentAuthorSnapshot: { id: string; displayName: string };
   remixMode: RemixMode;
@@ -36,12 +34,12 @@ interface AttributionProjection {
 
 interface PostProjection {
   id: string;
-  author: AuthorProjection | null;        // null if author deleted account
+  author: AuthorProjection | null; // null if author deleted account
   title: string;
-  body: string;                            // full body on detail; preview-only on feed (see feed.contract.md)
+  body: string; // full body on detail; preview-only on feed (see feed.contract.md)
   tone: Tone;
   status: PostStatus;
-  publishedAt: string;                     // ISO 8601
+  publishedAt: string; // ISO 8601
   editedAt: string | null;
   attribution: AttributionProjection | null; // non-null iff this post is a remix
   likeCount: number;
@@ -61,7 +59,7 @@ interface DraftProjection {
   tone: Tone | null;
   attribution: AttributionProjection | null;
   lastSafetyCheck:
-    | { verdict: "ALLOW" } 
+    | { verdict: "ALLOW" }
     | { verdict: "REJECT"; categories: string[]; reason: string }
     | null;
   createdAt: string;
@@ -235,6 +233,7 @@ Delete a published post.
 ## Remix-draft creation
 
 Remix is a special-case draft creation — it triggers an AI call. See:
+
 - [`ai.contract.md`](./ai.contract.md) for the underlying generation endpoint.
 - [Remix flow in `interactions.contract.md`](./interactions.contract.md#post-apiremixpostid)
   for the user-facing endpoint that creates a remix draft.
@@ -245,28 +244,32 @@ Remix is a special-case draft creation — it triggers an AI call. See:
 
 ```ts
 const TitleSchema = z.string().trim().min(1).max(120);
-const BodySchema  = z.string().trim().min(1).max(8000);
-const ToneSchema  = z.enum(["INSPIRING","ANALYTICAL","PLAYFUL","POETIC","PROFESSIONAL"]);
+const BodySchema = z.string().trim().min(1).max(8000);
+const ToneSchema = z.enum(["INSPIRING", "ANALYTICAL", "PLAYFUL", "POETIC", "PROFESSIONAL"]);
 
 const DraftCreateSchema = z.object({
   kind: z.literal("ORIGINAL"),
   tone: ToneSchema.optional(),
 });
 
-const DraftPatchSchema = z.object({
-  title: z.string().max(120).optional(),
-  body:  z.string().max(8000).optional(),
-  tone:  ToneSchema.optional(),
-}).refine(d => d.title !== undefined || d.body !== undefined || d.tone !== undefined, {
-  message: "At least one field must be provided",
-});
+const DraftPatchSchema = z
+  .object({
+    title: z.string().max(120).optional(),
+    body: z.string().max(8000).optional(),
+    tone: ToneSchema.optional(),
+  })
+  .refine((d) => d.title !== undefined || d.body !== undefined || d.tone !== undefined, {
+    message: "At least one field must be provided",
+  });
 
-const PostPatchSchema = z.object({
-  title: TitleSchema.optional(),
-  body:  BodySchema.optional(),
-}).refine(d => d.title !== undefined || d.body !== undefined, {
-  message: "At least one field must be provided",
-});
+const PostPatchSchema = z
+  .object({
+    title: TitleSchema.optional(),
+    body: BodySchema.optional(),
+  })
+  .refine((d) => d.title !== undefined || d.body !== undefined, {
+    message: "At least one field must be provided",
+  });
 ```
 
 The publish endpoint additionally requires that the draft, at the moment of

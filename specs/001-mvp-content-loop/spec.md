@@ -5,7 +5,7 @@
 **Status**: Draft
 **Input**: User description: "Build the MuseFlow MVP core content loop. MuseFlow allows users to transform an idea into an AI-assisted post, publish it to a public feed, receive interactions from other users, and let other users remix the post using AI."
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Create and Publish an AI-Assisted Post (Priority: P1)
 
@@ -130,7 +130,7 @@ the system generates a new draft seeded from the original, and the draft is
 pre-attributed to the original post and original author. The remixer edits and
 publishes; the resulting post displays attribution to the original.
 
-**Why this priority**: Remix is what makes MuseFlow a *flow* rather than a
+**Why this priority**: Remix is what makes MuseFlow a _flow_ rather than a
 collection of one-shot posts. It depends on Stories 1 and 2 (something must exist
 to remix) and is the principle V (Creator Attribution) showcase. It is P2 because
 a viable MVP exists without it.
@@ -233,7 +233,7 @@ section; drafts and saves are not present in the page or its underlying data.
   another user's draft URL — they see a not-found or not-authorized response; no
   draft content leaks.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -333,7 +333,7 @@ section; drafts and saves are not present in the page or its underlying data.
   and outcome (success / safety-rejected / error). Logs MUST NOT contain raw
   private draft content.
 
-### Key Entities *(include if feature involves data)*
+### Key Entities _(include if feature involves data)_
 
 - **User**: A person with an account. Attributes include unique account identifier,
   display name, profile description (optional), authentication identity. Owns
@@ -361,7 +361,7 @@ section; drafts and saves are not present in the page or its underlying data.
   and parent author at the time of draft creation; persists even if the parent is
   later removed.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 
