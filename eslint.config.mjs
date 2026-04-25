@@ -63,6 +63,9 @@ export default [
     },
     rules: {
       // TypeScript
+      // Base no-unused-vars doesn't understand TS interface params or type-only
+      // imports; defer entirely to @typescript-eslint/no-unused-vars.
+      "no-unused-vars": "off",
       "@typescript-eslint/no-unused-vars": [
         "error",
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
@@ -76,7 +79,11 @@ export default [
       "react-hooks/exhaustive-deps": "warn",
 
       // Tailwind
-      "tailwindcss/classnames-order": "warn",
+      // `tailwindcss/classnames-order` is intentionally OFF: under pnpm's
+      // strict node_modules layout the plugin can't resolve `tailwindcss`,
+      // and `prettier-plugin-tailwindcss` already enforces class ordering on
+      // format. Re-enable if upstream fixes the resolution path.
+      "tailwindcss/classnames-order": "off",
       "tailwindcss/no-custom-classname": "off",
 
       // Constitution Principle VIII gate:

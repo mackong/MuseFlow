@@ -1,5 +1,4 @@
 ---
-
 description: "Task list for MVP Core Content Loop (001) — implements the spec, plan, data model, and contracts in this directory"
 ---
 
@@ -42,16 +41,16 @@ Single Next.js project (App Router) at the repository root:
 
 **Purpose**: Project initialization and base toolchain.
 
-- [X] T001 Initialize Next.js 15 App Router project at repo root with `pnpm create next-app` (TypeScript, Tailwind, App Router, src dir, no Turbopack at start) — produces `package.json`, `tsconfig.json`, `next.config.mjs`, `src/app/`
-- [X] T002 [P] Configure `tsconfig.json` with `"strict": true`, `"noUncheckedIndexedAccess": true`, path alias `"@/*": ["./src/*"]`
-- [X] T003 [P] Add `.gitignore` covering `node_modules/`, `.next/`, `coverage/`, `.env*` (except `.env.example`), `.claude/settings.local.json`, `prisma/*.db`, `playwright-report/`, `test-results/`
-- [X] T004 [P] Configure ESLint flat config (`eslint.config.js`) with `@typescript-eslint`, `eslint-plugin-react`, `eslint-plugin-tailwindcss`; add a custom rule (or comment lint guidance) forbidding direct imports of `openai` outside `src/server/services/ai/`
-- [X] T005 [P] Configure Prettier (`.prettierrc.json`) with `prettier-plugin-tailwindcss`
-- [X] T006 Install runtime deps: `pnpm add prisma @prisma/client zod openai next-auth@beta @auth/prisma-adapter @upstash/ratelimit @upstash/redis sonner`
-- [X] T007 [P] Install dev deps: `pnpm add -D vitest @vitest/ui @vitejs/plugin-react happy-dom playwright @playwright/test prismock @types/node tsx`
-- [X] T008 Initialize shadcn/ui in `components.json` with `pnpm dlx shadcn@latest init` (style: default, base color: slate, CSS variables: yes, RSC: yes, src dir: yes), then add base primitives: `button card input label sheet skeleton sonner tabs textarea toast`
-- [X] T009 [P] Add npm scripts to `package.json`: `dev`, `build`, `start`, `lint`, `format`, `test:unit` (vitest run), `test:integration` (vitest run --config vitest.integration.config.ts), `test:e2e` (playwright test), `test`, `db:migrate` (prisma migrate dev), `db:reset` (prisma migrate reset --force), `db:seed` (tsx prisma/seed.ts), `db:studio`
-- [X] T010 [P] Create `.env.example` with all variables from `quickstart.md` § 2 (DATABASE_URL, DIRECT_DATABASE_URL, AUTH_SECRET, AUTH_URL, EMAIL_*, GITHUB_*, OPENAI_*, UPSTASH_*, MUSEFLOW_AI_PROVIDER, MUSEFLOW_MODERATOR) — with safe placeholder values
+- [x] T001 Initialize Next.js 15 App Router project at repo root with `pnpm create next-app` (TypeScript, Tailwind, App Router, src dir, no Turbopack at start) — produces `package.json`, `tsconfig.json`, `next.config.mjs`, `src/app/`
+- [x] T002 [P] Configure `tsconfig.json` with `"strict": true`, `"noUncheckedIndexedAccess": true`, path alias `"@/*": ["./src/*"]`
+- [x] T003 [P] Add `.gitignore` covering `node_modules/`, `.next/`, `coverage/`, `.env*` (except `.env.example`), `.claude/settings.local.json`, `prisma/*.db`, `playwright-report/`, `test-results/`
+- [x] T004 [P] Configure ESLint flat config (`eslint.config.js`) with `@typescript-eslint`, `eslint-plugin-react`, `eslint-plugin-tailwindcss`; add a custom rule (or comment lint guidance) forbidding direct imports of `openai` outside `src/server/services/ai/`
+- [x] T005 [P] Configure Prettier (`.prettierrc.json`) with `prettier-plugin-tailwindcss`
+- [x] T006 Install runtime deps: `pnpm add prisma @prisma/client zod openai next-auth@beta @auth/prisma-adapter @upstash/ratelimit @upstash/redis sonner`
+- [x] T007 [P] Install dev deps: `pnpm add -D vitest @vitest/ui @vitejs/plugin-react happy-dom playwright @playwright/test prismock @types/node tsx`
+- [x] T008 Initialize shadcn/ui in `components.json` with `pnpm dlx shadcn@latest init` (style: default, base color: slate, CSS variables: yes, RSC: yes, src dir: yes), then add base primitives: `button card input label sheet skeleton sonner tabs textarea toast`
+- [x] T009 [P] Add npm scripts to `package.json`: `dev`, `build`, `start`, `lint`, `format`, `test:unit` (vitest run), `test:integration` (vitest run --config vitest.integration.config.ts), `test:e2e` (playwright test), `test`, `db:migrate` (prisma migrate dev), `db:reset` (prisma migrate reset --force), `db:seed` (tsx prisma/seed.ts), `db:studio`
+- [x] T010 [P] Create `.env.example` with all variables from `quickstart.md` § 2 (`DATABASE_URL`, `DIRECT_DATABASE_URL`, `AUTH_SECRET`, `AUTH_URL`, `EMAIL_*`, `GITHUB_*`, `OPENAI_*`, `UPSTASH_*`, `MUSEFLOW_AI_PROVIDER`, `MUSEFLOW_MODERATOR`) — with safe placeholder values
 
 ---
 
@@ -62,16 +61,16 @@ story depends on this phase.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T011 [P] Write full Prisma schema in `prisma/schema.prisma` for all 8 entities + 6 enums per `data-model.md`: User, Post, Draft, Comment, Like, Save, Generation, SafetyCheck; enums Tone, PostStatus, RemixMode, GenerationSurface, GenerationMode, GenerationStatus, SafetyCheckSurface, SafetyVerdict; plus Auth.js companion tables Account, Session, VerificationToken; include all indexes and `CHECK` constraints noted in `data-model.md`
+- [x] T011 [P] Write full Prisma schema in `prisma/schema.prisma` for all 8 entities + 6 enums per `data-model.md`: User, Post, Draft, Comment, Like, Save, Generation, SafetyCheck; enums Tone, PostStatus, RemixMode, GenerationSurface, GenerationMode, GenerationStatus, SafetyCheckSurface, SafetyVerdict; plus Auth.js companion tables Account, Session, VerificationToken; include all indexes and `CHECK` constraints noted in `data-model.md`
 - [ ] T012 Run `pnpm db:migrate --name init` to generate the initial migration under `prisma/migrations/`; commit migration files
-- [ ] T013 [P] Create Prisma client singleton at `src/server/db/prisma.ts` (with hot-reload-safe global pattern for dev)
-- [ ] T014 [P] Create shared Zod primitives at `src/lib/contracts/shared.ts`: `CursorSchema`, `LimitSchema`, `IdSchema`, `IsoDateSchema`, `AuthorProjectionSchema`, `ErrorEnvelopeSchema`, `Tone` and `RemixMode` enum schemas
-- [ ] T015 [P] Create typed error module at `src/server/errors.ts` exporting: `AppError`, `UnauthenticatedError`, `ForbiddenError`, `NotFoundError`, `ValidationError`, `SafetyRejectedError`, `RateLimitedError`, `AIProviderError`, `ConflictError`; include `toHttpResponse(error)` mapper that returns `{ status, body }` per `contracts/README.md` error envelope
-- [ ] T016 [P] Define `AIProvider` interface and types at `src/server/services/ai/provider.interface.ts` per `contracts/ai.contract.md` § AIProvider interface
-- [ ] T017 [P] Define `Moderator` interface and types at `src/server/services/moderation/moderator.interface.ts` per `contracts/moderation.contract.md`
-- [ ] T018 [P] Implement fake AI provider at `tests/helpers/fakeAIProvider.ts`: deterministic `{ title, body }` output keyed by mode + idea; configurable safety-rejection trigger (e.g. body contains "TRIGGER_REJECT")
-- [ ] T019 [P] Implement fake moderator at `tests/helpers/fakeModerator.ts`: ALLOW by default; REJECT when input text contains "TRIGGER_REJECT" with category `["hate"]` and reason `"contains banned phrase"`
-- [ ] T020 [P] Test DB helper at `tests/helpers/db.ts`: per-test transaction or `prismock` setup; truncation reset; user/post factories
+- [x] T013 [P] Create Prisma client singleton at `src/server/db/prisma.ts` (with hot-reload-safe global pattern for dev)
+- [x] T014 [P] Create shared Zod primitives at `src/lib/contracts/shared.ts`: `CursorSchema`, `LimitSchema`, `IdSchema`, `IsoDateSchema`, `AuthorProjectionSchema`, `ErrorEnvelopeSchema`, `Tone` and `RemixMode` enum schemas
+- [x] T015 [P] Create typed error module at `src/server/errors.ts` exporting: `AppError`, `UnauthenticatedError`, `ForbiddenError`, `NotFoundError`, `ValidationError`, `SafetyRejectedError`, `RateLimitedError`, `AIProviderError`, `ConflictError`; include `toHttpResponse(error)` mapper that returns `{ status, body }` per `contracts/README.md` error envelope
+- [x] T016 [P] Define `AIProvider` interface and types at `src/server/services/ai/provider.interface.ts` per `contracts/ai.contract.md` § AIProvider interface
+- [x] T017 [P] Define `Moderator` interface and types at `src/server/services/moderation/moderator.interface.ts` per `contracts/moderation.contract.md`
+- [x] T018 [P] Implement fake AI provider at `tests/helpers/fakeAIProvider.ts`: deterministic `{ title, body }` output keyed by mode + idea; configurable safety-rejection trigger (e.g. body contains "TRIGGER_REJECT")
+- [x] T019 [P] Implement fake moderator at `tests/helpers/fakeModerator.ts`: ALLOW by default; REJECT when input text contains "TRIGGER_REJECT" with category `["hate"]` and reason `"contains banned phrase"`
+- [x] T020 [P] Test DB helper at `tests/helpers/db.ts`: per-test transaction or `prismock` setup; truncation reset; user/post factories
 - [ ] T021 Create Auth.js v5 config at `src/server/auth/auth.config.ts` using `@auth/prisma-adapter`; providers: `EmailProvider` (magic link, dev transport that logs to console when `EMAIL_SERVER` unset) and `GitHub` (only when env vars present); session strategy `database`; export `auth`, `signIn`, `signOut`, `handlers`
 - [ ] T022 [P] Create `getCurrentUser()` helper at `src/server/auth/session.ts` returning `{ id, username, displayName, image } | null`
 - [ ] T023 Mount Auth.js handlers at `src/app/api/auth/[...nextauth]/route.ts` exporting `GET` and `POST` from `handlers`
@@ -393,11 +392,11 @@ implementation tasks T040–T059 land.
 ### Incremental Delivery
 
 1. Setup + Foundational → Foundation ready
-2. + US1 + US2 → Public MVP (deployable)
-3. + US3 → Engagement (likes/comments/saves)
-4. + US4 → Remix (the differentiator)
-5. + US5 → Profile completeness
-6. + Polish → Release-ready PWA
+2. - US1 + US2 → Public MVP (deployable)
+3. - US3 → Engagement (likes/comments/saves)
+4. - US4 → Remix (the differentiator)
+5. - US5 → Profile completeness
+6. - Polish → Release-ready PWA
 
 ### Parallel Team Strategy
 

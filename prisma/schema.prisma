@@ -1,0 +1,332 @@
+// MuseFlow data model.
+// Source of truth: specs/001-mvp-content-loop/data-model.md
+// Constitution v2.0.0 — Principles V (attribution), VI (safety), VII (privacy),
+// X (cost-aware AI) all anchor on entities defined here.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
+}
+
+// -----------------------------------------------------------------------------
+// Enums
+// -----------------------------------------------------------------------------
+
+enum Tone {
+  INSPIRING
+  ANALYTICAL
+  PLAYFUL
+  POETIC
+  PROFESSIONAL
+}
+
+enum PostStatus {
+  PUBLISHED
+  REMOVED
+}
+
+enum RemixMode {
+  REWRITE
+  CONTINUE
+  SUMMARIZE
+  CHANGE_TONE
+}
+
+enum GenerationSurface {
+  CREATE
+  REMIX
+}
+
+enum GenerationMode {
+  CREATE
+  REWRITE
+  CONTINUE
+  SUMMARIZE
+  CHANGE_TONE
+}
+
+enum GenerationStatus {
+  SUCCESS
+  SAFETY_REJECTED
+  ERROR
+}
+
+enum SafetyCheckSurface {
+  AI_OUTPUT
+  POST_PUBLISH
+  COMMENT_CREATE
+}
+
+enum SafetyVerdict {
+  ALLOW
+  REJECT
+}
+
+// -----------------------------------------------------------------------------
+// User + Auth.js companion models
+// -----------------------------------------------------------------------------
+//
+// Auth.js (NextAuth v5) adapter requires `name`, `email`, `emailVerified`,
+// and `image` fields on User. Our spec adds `displayName` (unique public name)
+// and `username` (unique URL slug). They are nullable at the DB layer because
+// Auth.js's `createUser` only knows about OAuth/magic-link fields; T021 wires
+// an `events.createUser` callback that populates `displayName` and `username`
+// from `name`/`email` with disambiguation, after which all reads enforce
+// non-null.
+
+model User {
+  id            String    @id @default(cuid())
+  // Auth.js-managed fields
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  // App-managed public identity (populated by Auth.js events.createUser hook)
+  displayName   String?   @unique
+  username      String?   @unique
+  description   String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts    Account[]
+  sessions    Session[]
+  posts       Post[]       @relation("PostsByAuthor")
+  drafts      Draft[]
+  comments    Comment[]
+  likes       Like[]
+  saves       Save[]
+  generations Generation[]
+
+  @@index([createdAt(sort: Desc)])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// -----------------------------------------------------------------------------
+// Post — the published unit of content (drafts live in `Draft` below).
+// A remix is a Post with parentId set; parentAuthorSnapshot persists even
+// after parent author or parent post is deleted (Constitution Principle V).
+// -----------------------------------------------------------------------------
+
+model Post {
+  id                   String     @id @default(cuid())
+  authorId             String?
+  title                String
+  body                 String     @db.Text
+  tone                 Tone
+  status               PostStatus @default(PUBLISHED)
+  publishedAt          DateTime
+  editedAt             DateTime?
+  parentId             String?
+  parentAuthorSnapshot Json?
+  remixMode            RemixMode?
+  likeCount            Int        @default(0)
+  commentCount         Int        @default(0)
+  remixCount           Int        @default(0)
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+
+  author      User?        @relation("PostsByAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  parent      Post?        @relation("PostRemixes", fields: [parentId], references: [id], onDelete: SetNull)
+  children    Post[]       @relation("PostRemixes")
+  comments    Comment[]
+  likes       Like[]
+  saves       Save[]
+  generations Generation[]
+
+  // Primary feed query: status + publishedAt DESC + id DESC
+  @@index([status, publishedAt(sort: Desc), id(sort: Desc)])
+  // Public profile + own published list
+  @@index([authorId, status, publishedAt(sort: Desc)])
+  // Remix lineage walks
+  @@index([parentId])
+}
+
+// -----------------------------------------------------------------------------
+// Draft — private work-in-progress, scoped to a single author.
+// -----------------------------------------------------------------------------
+
+model Draft {
+  id                   String     @id @default(cuid())
+  authorId             String
+  title                String?
+  body                 String?    @db.Text
+  tone                 Tone?
+  parentId             String?
+  parentAuthorSnapshot Json?
+  remixMode            RemixMode?
+  lastGenerationId     String?
+  lastSafetyCheckId    String?
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+
+  author          User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  lastGeneration  Generation?  @relation("DraftLastGeneration", fields: [lastGenerationId], references: [id], onDelete: SetNull)
+  lastSafetyCheck SafetyCheck? @relation("DraftLastSafetyCheck", fields: [lastSafetyCheckId], references: [id], onDelete: SetNull)
+
+  @@index([authorId, updatedAt(sort: Desc)])
+}
+
+// -----------------------------------------------------------------------------
+// Comment — flat (no threading) reply on a published post.
+// authorId is nullable so author-account-deletion preserves the comment as
+// "[removed]" rather than orphaning the comment count.
+// -----------------------------------------------------------------------------
+
+model Comment {
+  id        String   @id @default(cuid())
+  postId    String
+  authorId  String?
+  body      String
+  createdAt DateTime @default(now())
+
+  post   Post  @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author User? @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([postId, createdAt(sort: Asc)])
+}
+
+// -----------------------------------------------------------------------------
+// Like — composite-PK pair guaranteeing at most one like per (user, post).
+// Source of truth for the per-post like count; Post.likeCount is a
+// service-maintained denormalization (data-model.md invariant 1 + 2).
+// -----------------------------------------------------------------------------
+
+model Like {
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@id([userId, postId])
+  @@index([postId])
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+// -----------------------------------------------------------------------------
+// Save — private bookmark. Same shape as Like, different intention. NEVER
+// exposed on public profiles (Principle VII).
+// -----------------------------------------------------------------------------
+
+model Save {
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@id([userId, postId])
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+// -----------------------------------------------------------------------------
+// Generation — record of every AI generation call.
+// Constitution Principle X: provider, model, latency, status, tokens. NO raw
+// input or output text is ever stored here.
+// -----------------------------------------------------------------------------
+
+model Generation {
+  id            String            @id @default(cuid())
+  userId        String
+  surface       GenerationSurface
+  mode          GenerationMode
+  provider      String
+  model         String
+  inputTokens   Int?
+  outputTokens  Int?
+  latencyMs     Int
+  status        GenerationStatus
+  errorMessage  String?
+  safetyCheckId String?
+  parentPostId  String?
+  createdAt     DateTime          @default(now())
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  safetyCheck SafetyCheck? @relation(fields: [safetyCheckId], references: [id], onDelete: SetNull)
+  parentPost  Post?        @relation(fields: [parentPostId], references: [id], onDelete: SetNull)
+  drafts      Draft[]      @relation("DraftLastGeneration")
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([provider, model, createdAt(sort: Desc)])
+}
+
+// -----------------------------------------------------------------------------
+// SafetyCheck — verdict of every moderation call (AI output + publish + comment).
+// `categories` is a Postgres String[] — flagged categories per the moderation
+// provider's canonical list. Empty when verdict = ALLOW.
+// -----------------------------------------------------------------------------
+
+model SafetyCheck {
+  id         String             @id @default(cuid())
+  provider   String
+  surface    SafetyCheckSurface
+  verdict    SafetyVerdict
+  categories String[]
+  reason     String?
+  latencyMs  Int
+  createdAt  DateTime           @default(now())
+
+  generations Generation[]
+  drafts      Draft[]      @relation("DraftLastSafetyCheck")
+
+  @@index([verdict, createdAt(sort: Desc)])
+}
+
+// -----------------------------------------------------------------------------
+// CHECK constraints (must be added in the migration SQL after `prisma migrate
+// dev --create-only`, since Prisma's schema language doesn't express CHECKs):
+//
+//   ALTER TABLE "Post" ADD CONSTRAINT "post_remix_paired"
+//     CHECK (("parentId" IS NULL AND "remixMode" IS NULL)
+//         OR ("parentId" IS NOT NULL AND "remixMode" IS NOT NULL));
+//   ALTER TABLE "Post" ADD CONSTRAINT "post_counts_nonneg"
+//     CHECK ("likeCount" >= 0 AND "commentCount" >= 0 AND "remixCount" >= 0);
+//   ALTER TABLE "Draft" ADD CONSTRAINT "draft_remix_paired"
+//     CHECK (("parentId" IS NULL AND "remixMode" IS NULL)
+//         OR ("parentId" IS NOT NULL AND "remixMode" IS NOT NULL));
+//
+// T012 (run migrate) is the place to apply these. They are listed here so they
+// are not lost between schema drafting and migration generation.
+// -----------------------------------------------------------------------------
