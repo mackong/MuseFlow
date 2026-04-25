@@ -3,7 +3,7 @@ import type {
   ModerationRequest,
   ModerationResult,
   SafetyCategory,
-} from "@/server/services/moderation/moderator.interface";
+} from "./moderator.interface";
 
 /**
  * Deterministic moderator for tests and `MUSEFLOW_MODERATOR=fake`.

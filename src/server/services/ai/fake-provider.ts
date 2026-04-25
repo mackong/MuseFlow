@@ -1,8 +1,4 @@
-import type {
-  AIGenerationRequest,
-  AIGenerationResult,
-  AIProvider,
-} from "@/server/services/ai/provider.interface";
+import type { AIGenerationRequest, AIGenerationResult, AIProvider } from "./provider.interface";
 
 /**
  * Deterministic in-process AI provider for unit tests and `MUSEFLOW_AI_PROVIDER=fake`.

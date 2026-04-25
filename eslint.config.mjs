@@ -113,10 +113,12 @@ export default [
     },
   },
 
-  // Allow `openai` SDK imports only inside the AI provider directory.
-  // This is the single, narrow exception to the rule above.
+  // Allow `openai` SDK imports only inside the AI provider and moderation
+  // provider directories. Both implement the abstraction layer (AIProvider
+  // and Moderator); feature code outside these dirs depends on the
+  // interfaces, never on the SDK directly.
   {
-    files: ["src/server/services/ai/**/*.{ts,tsx}"],
+    files: ["src/server/services/ai/**/*.{ts,tsx}", "src/server/services/moderation/**/*.{ts,tsx}"],
     rules: {
       "no-restricted-imports": "off",
     },

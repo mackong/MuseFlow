@@ -101,28 +101,28 @@ the content out of the public surface but visible in own profile drafts list.
 
 > Write these tests FIRST, ensure they FAIL before implementation.
 
-- [ ] T032 [P] [US1] Unit test for AI service: orchestrates rate limit → provider call → moderation → records `Generation` + `SafetyCheck`; uses fake provider/moderator; covers SUCCESS, SAFETY_REJECTED, ERROR, RATE_LIMITED paths in `tests/unit/ai.service.test.ts`
-- [ ] T033 [P] [US1] Unit test for moderation service: ALLOW path returns verdict and persists row; REJECT path persists categories + reason; provider error fails-closed in `tests/unit/moderation.service.test.ts`
+- [x] T032 [P] [US1] Unit test for AI service: orchestrates rate limit → provider call → moderation → records `Generation` + `SafetyCheck`; uses fake provider/moderator; covers SUCCESS, SAFETY_REJECTED, ERROR, RATE_LIMITED paths in `tests/unit/ai.service.test.ts`
+- [x] T033 [P] [US1] Unit test for moderation service: ALLOW path returns verdict and persists row; REJECT path persists categories + reason; provider error fails-closed in `tests/unit/moderation.service.test.ts`
 - [ ] T034 [P] [US1] Unit test for draft service: CRUD scoped to author; cross-author read returns NotFoundError; immutable attribution fields rejected on PATCH in `tests/unit/draft.service.test.ts`
 - [ ] T035 [P] [US1] Unit test for post service `publishDraft`: success creates Post + deletes Draft in one tx; safety reject preserves draft; draft missing required fields throws ValidationError in `tests/unit/post.service.test.ts`
-- [ ] T036 [P] [US1] Integration test for `POST /api/ai/generate`: 200 ALLOW, 200 REJECT, 401, 400, 429, 502 in `tests/integration/ai.api.test.ts`
+- [ ] T036 [P] [US1] Integration test for `POST /api/ai/generate`: 200 ALLOW, 200 REJECT, 401, 400, 429, 502 in `tests/integration/ai.api.test.ts` — DEFERRED to T039 (Playwright e2e). Vitest can't resolve `next/server` transitively imported by `next-auth` under pnpm's strict node_modules layout. Service-layer behavior is fully covered by the 5 unit tests in `tests/unit/ai.service.test.ts`; the route handler is glue code (validate → service → respond) that will be exercised by the Playwright create+publish e2e at T039 against a real dev server
 - [ ] T037 [P] [US1] Integration test for drafts CRUD endpoints: 401 anon, 200 own, 404 cross-author in `tests/integration/drafts.api.test.ts`
 - [ ] T038 [P] [US1] Integration test for `POST /api/drafts/[id]/publish`: 201 creates Post, 422 safety_rejected preserves draft, 400 missing fields, 404 cross-author in `tests/integration/publish.api.test.ts`
 - [ ] T039 [P] [US1] E2E test for create+publish flow on mobile viewport in `tests/e2e/create-and-publish.spec.ts`: sign in → create → generate (fake provider) → edit → publish → assert post visible at detail URL
 
 ### Implementation for User Story 1
 
-- [ ] T040 [P] [US1] AI prompts module at `src/server/services/ai/prompts.ts`: system prompts for `CREATE`, `REWRITE`, `CONTINUE`, `SUMMARIZE`, `CHANGE_TONE`; each enforces strict JSON output `{ title, body }`
-- [ ] T041 [P] [US1] OpenAI provider implementation at `src/server/services/ai/openai-provider.ts`: uses `openai` SDK with `baseURL` override for OpenAI-compatible endpoints; JSON-mode response_format; one retry on JSON parse failure with stricter system msg; second failure throws `AIProviderError`
-- [ ] T042 [P] [US1] OpenAI moderator implementation at `src/server/services/moderation/openai-moderator.ts`: calls OpenAI Moderation API; maps flagged categories to canonical `SafetyCategory` union; returns `Moderator` interface
-- [ ] T043 [US1] Moderation service at `src/server/services/moderation/moderation.service.ts`: `check(req)` calls configured `Moderator`, persists `SafetyCheck` row, returns result (depends on T017 + T042)
-- [ ] T044 [US1] AI service at `src/server/services/ai/ai.service.ts`: `generate(userId, request)` wraps rate-limit (T024) → provider (T041) → JSON validation → moderation (T043) → persists `Generation` row; returns shape per `contracts/ai.contract.md`
-- [ ] T045 [P] [US1] AI Zod contracts at `src/lib/contracts/ai.contract.ts`: `AiGenerateRequestSchema` (discriminated union by mode), `AiGenerateOutputSchema`, `AiGenerateResponseSchema` per `contracts/ai.contract.md`
+- [x] T040 [P] [US1] AI prompts module at `src/server/services/ai/prompts.ts`: system prompts for `CREATE`, `REWRITE`, `CONTINUE`, `SUMMARIZE`, `CHANGE_TONE`; each enforces strict JSON output `{ title, body }`
+- [x] T041 [P] [US1] OpenAI provider implementation at `src/server/services/ai/openai-provider.ts`: uses `openai` SDK with `baseURL` override for OpenAI-compatible endpoints; JSON-mode response_format; one retry on JSON parse failure with stricter system msg; second failure throws `AIProviderError`
+- [x] T042 [P] [US1] OpenAI moderator implementation at `src/server/services/moderation/openai-moderator.ts`: calls OpenAI Moderation API; maps flagged categories to canonical `SafetyCategory` union; returns `Moderator` interface
+- [x] T043 [US1] Moderation service at `src/server/services/moderation/moderation.service.ts`: `check(req)` calls configured `Moderator`, persists `SafetyCheck` row, returns result (depends on T017 + T042)
+- [x] T044 [US1] AI service at `src/server/services/ai/ai.service.ts`: `generate(userId, request)` wraps rate-limit (T024) → provider (T041) → JSON validation → moderation (T043) → persists `Generation` row; returns shape per `contracts/ai.contract.md`
+- [x] T045 [P] [US1] AI Zod contracts at `src/lib/contracts/ai.contract.ts`: `AiGenerateRequestSchema` (discriminated union by mode), `AiGenerateOutputSchema`, `AiGenerateResponseSchema` per `contracts/ai.contract.md`
 - [ ] T046 [P] [US1] Draft Zod contracts at `src/lib/contracts/draft.contract.ts`: `DraftProjectionSchema`, `DraftCreateSchema`, `DraftPatchSchema` per `contracts/posts.contract.md`
 - [ ] T047 [P] [US1] Post Zod contracts at `src/lib/contracts/post.contract.ts`: `PostProjectionSchema`, `PostPatchSchema`, `AttributionProjectionSchema` per `contracts/posts.contract.md`
 - [ ] T048 [US1] Draft service at `src/server/services/draft.service.ts`: `createOriginal(userId, tone?)`, `getOwn(userId, draftId)`, `listOwn(userId, cursor, limit)`, `patchOwn(userId, draftId, patch)`, `deleteOwn(userId, draftId)`; all queries hard-scoped by `authorId == userId`
 - [ ] T049 [US1] Post service at `src/server/services/post.service.ts`: `publishDraft(userId, draftId)` (transactional: validate fields → moderate user-final text → insert Post + delete Draft + bump parent.remixCount if remix), `editPost(userId, postId, patch)` (re-moderate), `deletePost(userId, postId)`, `getById(viewerId|null, postId)`
-- [ ] T050 [US1] Route `POST /api/ai/generate` at `src/app/api/ai/generate/route.ts`: ≤30 lines — `getCurrentUser()` → validate body → `aiService.generate(...)` → format response → set rate-limit headers
+- [x] T050 [US1] Route `POST /api/ai/generate` at `src/app/api/ai/generate/route.ts`: ≤30 lines — `getCurrentUser()` → validate body → `aiService.generate(...)` → format response → set rate-limit headers
 - [ ] T051 [US1] Drafts list/create routes at `src/app/api/drafts/route.ts` (GET, POST)
 - [ ] T052 [US1] Drafts item routes at `src/app/api/drafts/[id]/route.ts` (GET, PATCH, DELETE)
 - [ ] T053 [US1] Publish route at `src/app/api/drafts/[id]/publish/route.ts` (POST)
