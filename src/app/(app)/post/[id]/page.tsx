@@ -1,10 +1,12 @@
 import { notFound } from "next/navigation";
 
 import { AttributionBadge } from "@/components/post/AttributionBadge";
+import { CommentList } from "@/components/post/CommentList";
 import { InteractionBar } from "@/components/post/InteractionBar";
 import { RelativeTime } from "@/components/ui/RelativeTime";
 import { getCurrentUser } from "@/server/auth/session";
 import { NotFoundError } from "@/server/errors";
+import { listCommentsForPost } from "@/server/services/comment.service";
 import { getById } from "@/server/services/post.service";
 
 interface PageProps {
@@ -20,12 +22,12 @@ const TONE_LABEL = {
 } as const;
 
 /**
- * /post/[id] — public post detail (US2).
+ * /post/[id] — public post detail (US2 + US3).
  *
- * Server-rendered for fast first paint and good SEO. The InteractionBar
- * is a client island that handles like/save/comment/remix entry points;
- * for US2 it's a placeholder shell that fires the SignInPrompt on tap
- * for anonymous viewers. The full bar wires up to /api/likes etc. in US3.
+ * Server-rendered for fast first paint and good SEO. The first page of
+ * comments is fetched server-side; the CommentList client island handles
+ * delete + Load more. The InteractionBar is a client island that wires
+ * up like/save/comment/remix actions against /api/likes etc. (US3).
  */
 export default async function PostDetailPage({ params }: PageProps) {
   const { id } = await params;
@@ -39,8 +41,14 @@ export default async function PostDetailPage({ params }: PageProps) {
     throw err;
   }
 
+  const initialComments = await listCommentsForPost({
+    postId: post.id,
+    limit: 20,
+    viewerId: viewer?.id ?? null,
+  });
+
   return (
-    <article className="flex flex-col gap-4 px-4 py-6">
+    <article className="flex flex-col gap-6 px-4 py-6">
       <header className="flex flex-col gap-2">
         <h1 className="text-2xl font-semibold leading-tight tracking-tight">{post.title}</h1>
         {post.attribution && <AttributionBadge attribution={post.attribution} />}
@@ -70,6 +78,13 @@ export default async function PostDetailPage({ params }: PageProps) {
         likeCount={post.likeCount}
         commentCount={post.commentCount}
         remixCount={post.remixCount}
+      />
+
+      <CommentList
+        postId={post.id}
+        isAuthenticated={viewer !== null}
+        initialComments={initialComments.comments}
+        initialNextCursor={initialComments.nextCursor}
       />
     </article>
   );

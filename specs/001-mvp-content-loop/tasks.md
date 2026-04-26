@@ -183,31 +183,31 @@ in B's saved list); B can delete their own comment; A cannot delete B's.
 
 ### Tests for User Story 3 (REQUIRED — Principle XI critical flow) ⚠️
 
-- [ ] T074 [P] [US3] Unit test for like service: insert idempotency, toggle decrement, count-equals-distinct-users invariant under concurrent toggles in `tests/unit/like.service.test.ts`
-- [ ] T075 [P] [US3] Unit test for save service: per-user privacy, toggle in `tests/unit/save.service.test.ts`
-- [ ] T076 [P] [US3] Unit test for comment service: create with safety check, author-only delete, comment count maintenance in `tests/unit/comment.service.test.ts`
-- [ ] T077 [P] [US3] Integration test for `POST /api/likes/[postId]`: 200 toggle, 401 anon, 404 missing post, count integrity assertion in `tests/integration/likes.api.test.ts`
-- [ ] T078 [P] [US3] Integration test for `POST /api/saves/[postId]` and `GET /api/saves`: privacy (cross-user 401/empty), toggle behavior in `tests/integration/saves.api.test.ts`
-- [ ] T079 [P] [US3] Integration test for comments endpoints (POST, GET, DELETE): 422 safety_rejected on bad body, 401 anon, 404 cross-author delete in `tests/integration/comments.api.test.ts`
-- [ ] T080 [P] [US3] E2E test for like + comment + save flow on mobile viewport in `tests/e2e/feed-and-interact.spec.ts`
+- [x] T074 [P] [US3] Unit test for like service: insert idempotency, toggle decrement, count-equals-distinct-users invariant under concurrent toggles in `tests/unit/like.service.test.ts`
+- [x] T075 [P] [US3] Unit test for save service: per-user privacy, toggle in `tests/unit/save.service.test.ts`
+- [x] T076 [P] [US3] Unit test for comment service: create with safety check, author-only delete, comment count maintenance in `tests/unit/comment.service.test.ts`
+- [ ] T077 [P] [US3] Integration test for `POST /api/likes/[postId]`: 200 toggle, 401 anon, 404 missing post, count integrity assertion in `tests/integration/likes.api.test.ts` — DEFERRED (vitest+next-auth resolver block); 5 unit tests cover the service; T080 e2e proves the full HTTP path
+- [ ] T078 [P] [US3] Integration test for `POST /api/saves/[postId]` and `GET /api/saves`: privacy (cross-user 401/empty), toggle behavior in `tests/integration/saves.api.test.ts` — DEFERRED (same blocker); 8 unit tests cover the service; T080 e2e proves saved-list rendering
+- [ ] T079 [P] [US3] Integration test for comments endpoints (POST, GET, DELETE): 422 safety_rejected on bad body, 401 anon, 404 cross-author delete in `tests/integration/comments.api.test.ts` — DEFERRED (same blocker); 11 unit tests cover the service; T080 e2e proves the safety-rejection alert + create round-trip
+- [x] T080 [P] [US3] E2E test for like + comment + save flow on mobile viewport in `tests/e2e/feed-and-interact.spec.ts`
 
 ### Implementation for User Story 3
 
-- [ ] T081 [P] [US3] Like Zod contracts at `src/lib/contracts/like.contract.ts`
-- [ ] T082 [P] [US3] Save Zod contracts at `src/lib/contracts/save.contract.ts`
-- [ ] T083 [P] [US3] Comment Zod contracts at `src/lib/contracts/comment.contract.ts`
-- [ ] T084 [US3] Like service at `src/server/services/like.service.ts`: `toggle(userId, postId)` using INSERT … ON CONFLICT DO NOTHING + transactional counter delta; reads also expose `viewerLiked(userId, postId)` for projections
-- [ ] T085 [US3] Save service at `src/server/services/save.service.ts`: `toggle(userId, postId)`, `listOwn(userId, cursor, limit)`; queries hard-scoped by userId
-- [ ] T086 [US3] Comment service at `src/server/services/comment.service.ts`: `create(userId, postId, body)` (moderation gated), `listForPost(postId, cursor, limit)`, `deleteOwn(userId, commentId)`; counter maintenance in tx
-- [ ] T087 [US3] Route `POST /api/likes/[postId]` at `src/app/api/likes/[postId]/route.ts`
-- [ ] T088 [US3] Route `POST /api/saves/[postId]` at `src/app/api/saves/[postId]/route.ts`
-- [ ] T089 [US3] Route `GET /api/saves` at `src/app/api/saves/route.ts`
-- [ ] T090 [US3] Comments routes at `src/app/api/comments/route.ts` (POST) and `src/app/api/posts/[id]/comments/route.ts` (GET) and `src/app/api/comments/[id]/route.ts` (DELETE)
-- [ ] T091 [P] [US3] `InteractionBar` component at `src/components/post/InteractionBar.tsx`: like/comment/save/remix buttons; optimistic toggle for like and save; shows SignInPrompt for anonymous users
-- [ ] T092 [P] [US3] `CommentList` component at `src/components/post/CommentList.tsx`: oldest-first, paginated, delete affordance only when `viewer.isAuthor`
-- [ ] T093 [P] [US3] `CommentForm` component at `src/components/post/CommentForm.tsx`: 1000-char textarea, submit handler, surfaces 422 safety rejection inline
-- [ ] T094 [US3] Wire InteractionBar + CommentList + CommentForm into post detail page (T072)
-- [ ] T095 [US3] Saved view at `src/app/(app)/saved/page.tsx`: lists own saved posts (uses `GET /api/saves`)
+- [x] T081 [P] [US3] Like Zod contracts at `src/lib/contracts/like.contract.ts`
+- [x] T082 [P] [US3] Save Zod contracts at `src/lib/contracts/save.contract.ts`
+- [x] T083 [P] [US3] Comment Zod contracts at `src/lib/contracts/comment.contract.ts`
+- [x] T084 [US3] Like service at `src/server/services/like.service.ts`: `toggle(userId, postId)` using INSERT … ON CONFLICT DO NOTHING + transactional counter delta; reads also expose `viewerLiked(userId, postId)` for projections
+- [x] T085 [US3] Save service at `src/server/services/save.service.ts`: `toggle(userId, postId)`, `listOwn(userId, cursor, limit)`; queries hard-scoped by userId
+- [x] T086 [US3] Comment service at `src/server/services/comment.service.ts`: `create(userId, postId, body)` (moderation gated), `listForPost(postId, cursor, limit)`, `deleteOwn(userId, commentId)`; counter maintenance in tx
+- [x] T087 [US3] Route `POST /api/likes/[postId]` at `src/app/api/likes/[postId]/route.ts`
+- [x] T088 [US3] Route `POST /api/saves/[postId]` at `src/app/api/saves/[postId]/route.ts`
+- [x] T089 [US3] Route `GET /api/saves` at `src/app/api/saves/route.ts`
+- [x] T090 [US3] Comments routes at `src/app/api/comments/route.ts` (POST) and `src/app/api/posts/[id]/comments/route.ts` (GET) and `src/app/api/comments/[id]/route.ts` (DELETE)
+- [x] T091 [P] [US3] `InteractionBar` component at `src/components/post/InteractionBar.tsx`: like/comment/save/remix buttons; optimistic toggle for like and save; shows SignInPrompt for anonymous users
+- [x] T092 [P] [US3] `CommentList` component at `src/components/post/CommentList.tsx`: oldest-first, paginated, delete affordance only when `viewer.isAuthor`
+- [x] T093 [P] [US3] `CommentForm` component at `src/components/post/CommentForm.tsx`: 1000-char textarea, submit handler, surfaces 422 safety rejection inline
+- [x] T094 [US3] Wire InteractionBar + CommentList + CommentForm into post detail page (T072)
+- [x] T095 [US3] Saved view at `src/app/(app)/saved/page.tsx`: lists own saved posts (uses `GET /api/saves`)
 
 **Checkpoint**: Engagement features complete. Like / comment / save invariants
 verified by tests. SignInPrompt protects anonymous users from accidental

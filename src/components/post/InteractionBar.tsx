@@ -1,23 +1,35 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Bookmark, Heart, MessageCircle, Sparkles } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { toast } from "sonner";
 
 import { SignInPrompt } from "@/components/auth/SignInPrompt";
 import { Button } from "@/components/ui/button";
+import type { LikeToggleResponse } from "@/lib/contracts/like.contract";
 import type { ViewerState } from "@/lib/contracts/post.contract";
+import type { SaveToggleResponse } from "@/lib/contracts/save.contract";
+import { ApiError, api } from "@/lib/http/client";
 import { cn } from "@/lib/utils";
 
 /**
- * Interaction bar shown under each post detail (US2 shell).
+ * Interaction bar (T091): like / comment / save / remix.
  *
- * For US2 the buttons are wired to:
- *  - anonymous viewers: open the SignInPrompt bottom sheet
- *  - authenticated viewers: a TODO toast for now (full like/save/comment
- *    wiring lands in US3 at T091; remix lands in US4 at T108)
+ * Behavior matrix:
+ *   anonymous → opens SignInPrompt bottom sheet for ANY action
+ *   own post  → like and remix are disabled (you can't like or remix your
+ *               own post per the spec); save is allowed; comment is
+ *               allowed and scrolls to the comment form
+ *   others    → like / save toggle optimistically against /api/likes,
+ *               /api/saves; comment scrolls to the comment form on the
+ *               same page; remix navigates to /post/[id]/remix (US4 lands
+ *               that route)
  *
- * The shell is committed now so the post detail page is complete; the
- * actual API calls slot in incrementally.
+ * Optimistic updates: state flips immediately on click; on API error we
+ * revert and surface a toast. This keeps the UI snappy even when the
+ * network is slow (Constitution Principle I — mobile-first responsiveness).
  */
 export function InteractionBar({
   postId,
@@ -26,6 +38,8 @@ export function InteractionBar({
   likeCount,
   commentCount,
   remixCount,
+  /** id of an element on the same page to scroll to when "Comment" is tapped. */
+  commentTargetId = "comments",
 }: {
   postId: string;
   isOwnPost: boolean;
@@ -33,12 +47,76 @@ export function InteractionBar({
   likeCount: number;
   commentCount: number;
   remixCount: number;
+  commentTargetId?: string;
 }) {
+  const router = useRouter();
   const [signInOpen, setSignInOpen] = useState(false);
+  const [liked, setLiked] = useState(viewer?.liked ?? false);
+  const [saved, setSaved] = useState(viewer?.saved ?? false);
+  const [likes, setLikes] = useState(likeCount);
+  const [busyLike, setBusyLike] = useState(false);
+  const [busySave, setBusySave] = useState(false);
   const isAnonymous = viewer === null;
 
-  function handleAnonClick() {
+  function promptSignIn() {
     setSignInOpen(true);
+  }
+
+  async function onLike() {
+    if (isAnonymous) return promptSignIn();
+    if (busyLike) return;
+    const prev = { liked, likes };
+    setBusyLike(true);
+    setLiked((v) => !v);
+    setLikes((n) => (prev.liked ? n - 1 : n + 1));
+    try {
+      const res = await api<LikeToggleResponse>(`/api/likes/${postId}`, {
+        method: "POST",
+      });
+      setLiked(res.liked);
+      setLikes(res.likeCount);
+    } catch (err) {
+      setLiked(prev.liked);
+      setLikes(prev.likes);
+      toast.error(err instanceof ApiError ? err.envelope.error.message : "Couldn't update like.");
+    } finally {
+      setBusyLike(false);
+    }
+  }
+
+  async function onSave() {
+    if (isAnonymous) return promptSignIn();
+    if (busySave) return;
+    const prev = saved;
+    setBusySave(true);
+    setSaved((v) => !v);
+    try {
+      const res = await api<SaveToggleResponse>(`/api/saves/${postId}`, {
+        method: "POST",
+      });
+      setSaved(res.saved);
+    } catch (err) {
+      setSaved(prev);
+      toast.error(err instanceof ApiError ? err.envelope.error.message : "Couldn't update save.");
+    } finally {
+      setBusySave(false);
+    }
+  }
+
+  function onComment() {
+    if (isAnonymous) return promptSignIn();
+    const target = document.getElementById(commentTargetId);
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+      const input = target.querySelector<HTMLTextAreaElement>("textarea");
+      input?.focus();
+    }
+  }
+
+  function onRemix() {
+    if (isAnonymous) return promptSignIn();
+    if (isOwnPost) return;
+    router.push(`/post/${postId}/remix`);
   }
 
   return (
@@ -46,18 +124,18 @@ export function InteractionBar({
       <div className="grid grid-cols-4 gap-1 border-t border-border pt-3">
         <Action
           label="Like"
-          count={likeCount}
+          count={likes}
           icon={Heart}
-          filled={viewer?.liked}
-          disabled={isOwnPost}
-          onClick={isAnonymous ? handleAnonClick : undefined}
+          filled={liked}
+          disabled={isOwnPost || busyLike}
+          onClick={onLike}
           dataTestId={`like-${postId}`}
         />
         <Action
           label="Comment"
           count={commentCount}
           icon={MessageCircle}
-          onClick={isAnonymous ? handleAnonClick : undefined}
+          onClick={onComment}
           dataTestId={`comment-${postId}`}
         />
         <Action
@@ -65,14 +143,15 @@ export function InteractionBar({
           count={remixCount}
           icon={Sparkles}
           disabled={isOwnPost}
-          onClick={isAnonymous ? handleAnonClick : undefined}
+          onClick={onRemix}
           dataTestId={`remix-${postId}`}
         />
         <Action
           label="Save"
           icon={Bookmark}
-          filled={viewer?.saved}
-          onClick={isAnonymous ? handleAnonClick : undefined}
+          filled={saved}
+          disabled={busySave}
+          onClick={onSave}
           dataTestId={`save-${postId}`}
         />
       </div>
@@ -97,7 +176,7 @@ function Action({
 }: {
   label: string;
   count?: number;
-  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+  icon: LucideIcon;
   filled?: boolean;
   disabled?: boolean;
   onClick?: () => void;
