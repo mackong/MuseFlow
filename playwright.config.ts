@@ -18,7 +18,11 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  // Default to 1 worker locally too — Playwright's webServer-availability
+  // probe + parallel boots can race against the dev server for the first
+  // few specs; serial keeps the suite deterministic. Bump if the suite
+  // grows large enough that wall-clock time matters.
+  workers: 1,
   reporter: process.env.CI ? [["github"], ["list"]] : "list",
   use: {
     baseURL: "http://localhost:3000",

@@ -135,6 +135,51 @@ describe("post.service", () => {
       const draftId = await fillDraft(a);
       await expect(publishDraft({ userId: b, draftId })).rejects.toBeInstanceOf(NotFoundError);
     });
+
+    it("remix publish: bumps parent.remixCount and persists snapshot+remixMode on the new Post (T105)", async () => {
+      const parentAuthor = await freshUser("pa");
+      const remixer = await freshUser("rm");
+      // Set up a parent post the remixer is going to fork.
+      const parent = await prismock.post.create({
+        data: {
+          authorId: parentAuthor,
+          title: "Original",
+          body: "Original body",
+          tone: "INSPIRING",
+          publishedAt: new Date(),
+          status: "PUBLISHED",
+          remixCount: 0,
+        },
+      });
+      // Build a remix draft directly (skipping AI; remix.service has its own
+      // tests). Snapshot the parent author at draft time.
+      const draft = await prismock.draft.create({
+        data: {
+          authorId: remixer,
+          title: "Remix title",
+          body: "Remix body",
+          tone: "INSPIRING",
+          parentId: parent.id,
+          parentAuthorSnapshot: { id: parentAuthor, displayName: "pa" },
+          remixMode: "REWRITE",
+        },
+      });
+
+      const published = await publishDraft({ userId: remixer, draftId: draft.id });
+      expect(published.attribution).not.toBeNull();
+      expect(published.attribution!.remixMode).toBe("REWRITE");
+      expect(published.attribution!.parentAuthorSnapshot.displayName).toBe("pa");
+
+      const parentAfter = await prismock.post.findUnique({ where: { id: parent.id } });
+      expect(parentAfter!.remixCount).toBe(1);
+
+      // Snapshot persists on the new Post row.
+      const newPostRow = await prismock.post.findUnique({ where: { id: published.id } });
+      expect(newPostRow!.parentId).toBe(parent.id);
+      expect(newPostRow!.remixMode).toBe("REWRITE");
+      const snap = newPostRow!.parentAuthorSnapshot as { id: string; displayName: string };
+      expect(snap.displayName).toBe("pa");
+    });
   });
 
   describe("editPost", () => {

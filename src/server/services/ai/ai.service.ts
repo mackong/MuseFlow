@@ -40,6 +40,8 @@ export interface GenerateInput {
 
 export interface GenerateResult {
   generationId: string;
+  /** Set whenever moderation ran (i.e. the provider returned content). */
+  safetyCheckId: string | null;
   output: { title: string; body: string } | null;
   safety: { verdict: "ALLOW" } | { verdict: "REJECT"; categories: string[]; reason: string };
   inputTokens: number | null;
@@ -149,6 +151,7 @@ export async function generate(input: GenerateInput): Promise<GenerateResult> {
 
     return {
       generationId: row.id,
+      safetyCheckId,
       output: modResult.verdict === "ALLOW" ? result.output : null,
       safety:
         modResult.verdict === "ALLOW"

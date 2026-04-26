@@ -47,9 +47,7 @@ test("US3: signed-in user likes, comments, and saves another user's post", async
 
   // 1. Open the post detail.
   await page.goto(`/post/${post.id}`);
-  await expect(page.getByRole("heading", { level: 1 })).toContainText(
-    /joy of walking at dawn/i,
-  );
+  await expect(page.getByRole("heading", { level: 1 })).toContainText(/joy of walking at dawn/i);
 
   // 2. Like the post.
   const likeBtn = page.locator(`[data-testid="like-${post.id}"]`);
@@ -88,7 +86,5 @@ test("US3: signed-in user likes, comments, and saves another user's post", async
   // 7. Visit /saved and confirm the post is listed.
   await page.goto("/saved");
   await expect(page.locator('[data-testid="saved-list"]')).toBeVisible({ timeout: 5_000 });
-  await expect(page.getByRole("heading", { level: 2 })).toContainText(
-    /joy of walking at dawn/i,
-  );
+  await expect(page.getByRole("heading", { level: 2 })).toContainText(/joy of walking at dawn/i);
 });

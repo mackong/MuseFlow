@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { PostEditor } from "@/components/editor/PostEditor";
 import { ToneSelector } from "@/components/editor/ToneSelector";
+import { AttributionBadge } from "@/components/post/AttributionBadge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { DraftProjection, DraftResponse } from "@/lib/contracts/draft.contract";
@@ -129,6 +130,8 @@ export default function DraftEditorPage() {
   return (
     <div className="flex flex-col gap-4 px-4 py-6">
       <h1 className="text-xl font-semibold">Draft</h1>
+
+      {draft.attribution && <AttributionBadge attribution={draft.attribution} />}
 
       <div className="flex flex-col gap-2">
         <span className="text-sm font-medium leading-none">Tone</span>
