@@ -150,23 +150,23 @@ opens full post.
 
 ### Tests for User Story 2 (REQUIRED — Principle XI critical flow) ⚠️
 
-- [ ] T060 [P] [US2] Unit test for feed service: cursor pagination stable under concurrent inserts; status filter excludes REMOVED; preview truncation rules in `tests/unit/feed.service.test.ts`
-- [ ] T061 [P] [US2] Integration test for `GET /api/feed`: 200 with valid cursor, 200 empty state, 400 malformed cursor, viewer state populated only when authenticated in `tests/integration/feed.api.test.ts`
-- [ ] T062 [P] [US2] Integration test for `GET /api/posts/[id]`: 200 logged-in (with viewer), 200 anon (without viewer), 404 not_found / removed in `tests/integration/post-detail.api.test.ts`
+- [x] T060 [P] [US2] Unit test for feed service: cursor pagination stable under concurrent inserts; status filter excludes REMOVED; preview truncation rules in `tests/unit/feed.service.test.ts`
+- [ ] T061 [P] [US2] Integration test for `GET /api/feed`: 200 with valid cursor, 200 empty state, 400 malformed cursor, viewer state populated only when authenticated in `tests/integration/feed.api.test.ts` — DEFERRED (same vitest+next-auth resolver block as T036/T037/T038); 7 unit tests in `tests/unit/feed.service.test.ts` cover the service layer; live curl smoke proves the route handler glue (status 200, viewer correctly absent for anonymous)
+- [ ] T062 [P] [US2] Integration test for `GET /api/posts/[id]`: 200 logged-in (with viewer), 200 anon (without viewer), 404 not_found / removed in `tests/integration/post-detail.api.test.ts` — DEFERRED (same blocker); 11 unit tests in `tests/unit/post.service.test.ts` cover the service layer; live curl smoke proves anonymous reads work
 
 ### Implementation for User Story 2
 
-- [ ] T063 [P] [US2] Feed Zod contracts at `src/lib/contracts/feed.contract.ts`: `FeedCardProjectionSchema`, `FeedQuerySchema` per `contracts/feed.contract.md`
-- [ ] T064 [US2] Feed service at `src/server/services/feed.service.ts`: `listPublic(viewerId|null, cursor, limit)` runs the indexed cursor query, joins author, computes per-viewer `liked`/`saved` (only when viewerId), truncates body preview per rules
-- [ ] T065 [US2] Route `GET /api/feed` at `src/app/api/feed/route.ts`
+- [x] T063 [P] [US2] Feed Zod contracts at `src/lib/contracts/feed.contract.ts`: `FeedCardProjectionSchema`, `FeedQuerySchema` per `contracts/feed.contract.md`
+- [x] T064 [US2] Feed service at `src/server/services/feed.service.ts`: `listPublic(viewerId|null, cursor, limit)` runs the indexed cursor query, joins author, computes per-viewer `liked`/`saved` (only when viewerId), truncates body preview per rules
+- [x] T065 [US2] Route `GET /api/feed` at `src/app/api/feed/route.ts`
 - [x] T066 [US2] Route `GET /api/posts/[id]` at `src/app/api/posts/[id]/route.ts` — landed early as part of the US1 slice (T039 e2e needed the post-detail target). Calls `post.service.getById(id, viewer?.id ?? null)`. Public read; viewer state populated when authenticated.
-- [ ] T067 [P] [US2] `FeedCard` component at `src/components/feed/FeedCard.tsx`: mobile-first card with title, preview, author, relative time, count badges, optional `AttributionBadge` for remix
-- [ ] T068 [P] [US2] `AttributionBadge` component at `src/components/post/AttributionBadge.tsx`: "Remix of <title> by <author>" with link when parent present, plain text when removed
-- [ ] T069 [P] [US2] `FeedList` component at `src/components/feed/FeedList.tsx`: SWR-backed list with 30s revalidate + revalidate-on-focus (decision 7); cursor-based "Load more"; skeleton loaders
-- [ ] T070 [P] [US2] `RelativeTime` component at `src/components/ui/RelativeTime.tsx`: hydration-safe relative time formatter
-- [ ] T071 [US2] Feed page at `src/app/(app)/feed/page.tsx`: anonymous-friendly (no redirect), mounts FeedList, shows empty-state CTA when zero results
-- [ ] T072 [US2] Post detail page at `src/app/(app)/post/[id]/page.tsx`: loads post via `GET /api/posts/[id]`, renders full body, attribution badge if remix, placeholder for InteractionBar (filled in US3)
-- [ ] T073 [P] [US2] `SignInPrompt` component at `src/components/auth/SignInPrompt.tsx`: shown when an anonymous user taps an interaction; bottom sheet with "Sign in" / "Create account" CTAs
+- [x] T067 [P] [US2] `FeedCard` component at `src/components/feed/FeedCard.tsx`: mobile-first card with title, preview, author, relative time, count badges, optional `AttributionBadge` for remix
+- [x] T068 [P] [US2] `AttributionBadge` component at `src/components/post/AttributionBadge.tsx`: "Remix of <title> by <author>" with link when parent present, plain text when removed
+- [x] T069 [P] [US2] `FeedList` component at `src/components/feed/FeedList.tsx`: SWR-backed list with 30s revalidate + revalidate-on-focus (decision 7); cursor-based "Load more"; skeleton loaders
+- [x] T070 [P] [US2] `RelativeTime` component at `src/components/ui/RelativeTime.tsx`: hydration-safe relative time formatter
+- [x] T071 [US2] Feed page at `src/app/(app)/feed/page.tsx`: anonymous-friendly (no redirect), mounts FeedList, shows empty-state CTA when zero results
+- [x] T072 [US2] Post detail page at `src/app/(app)/post/[id]/page.tsx`: loads post via `GET /api/posts/[id]`, renders full body, attribution badge if remix, placeholder for InteractionBar (filled in US3)
+- [x] T073 [P] [US2] `SignInPrompt` component at `src/components/auth/SignInPrompt.tsx`: shown when an anonymous user taps an interaction; bottom sheet with "Sign in" / "Create account" CTAs
 
 **Checkpoint**: Anonymous and logged-in users can browse the feed and read
 posts. The MVP slice (US1 + US2) is now demonstrable end-to-end.
