@@ -28,6 +28,10 @@ export interface ListPublicFeedInput {
   viewerId: string | null;
   limit: number;
   cursor?: string;
+  /** Optional: restrict to a single author's published posts (used by profile pages). */
+  authorId?: string;
+  /** Optional: when true, only posts that are remixes (parentId IS NOT NULL). */
+  onlyRemixes?: boolean;
 }
 
 export interface ListPublicFeedResult {
@@ -64,6 +68,8 @@ export async function listPublicFeed(input: ListPublicFeedInput): Promise<ListPu
   const rows = await prisma.post.findMany({
     where: {
       status: "PUBLISHED",
+      ...(input.authorId ? { authorId: input.authorId } : {}),
+      ...(input.onlyRemixes ? { parentId: { not: null } } : {}),
       ...(cursor
         ? {
             OR: [
